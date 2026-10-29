@@ -15,7 +15,6 @@ import { ProgressBar } from '../components/common/ProgressBar';
 import { Header } from '../components/common/Header';
 import { Button } from '../components/common/Button';
 import { ModalWrapper } from '../components/common/ModalWrapper';
-import { GradeItem } from '../types';
 
 export const GradesScreen: React.FC = () => {
   const {
@@ -112,7 +111,7 @@ export const GradesScreen: React.FC = () => {
           <View style={styles.simulatorHeader}>
             <Text style={styles.simulatorTitle}>🧮 Calculadora de Prova Final</Text>
             <Text style={styles.simulatorSub}>
-              "Quanto preciso tirar na avaliação final para passar?"
+              &quot;Quanto preciso tirar na avaliação final para passar?&quot;
             </Text>
           </View>
 

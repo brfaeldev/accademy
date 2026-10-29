@@ -160,7 +160,7 @@ export const TasksScreen: React.FC = () => {
         {filteredTasks.length === 0 ? (
           <Card>
             <Text style={styles.emptyText}>
-              Nenhuma atividade encontrada com o status "{activeFilter}".
+              Nenhuma atividade encontrada com o status &quot;{activeFilter}&quot;.
             </Text>
           </Card>
         ) : (

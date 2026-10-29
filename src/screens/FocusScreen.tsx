@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,31 +33,9 @@ export const FocusScreen: React.FC = () => {
   const [secondsLeft, setSecondsLeft] = useState<number>(25 * 60);
   const [isActive, setIsActive] = useState<boolean>(false);
 
-  const timerRef = useRef<any>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    if (isActive) {
-      timerRef.current = setInterval(() => {
-        setSecondsLeft((prev) => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            setIsActive(false);
-            handleTimerComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isActive]);
-
-  const handleTimerComplete = () => {
+  const handleTimerComplete = useCallback(() => {
     Alert.alert('⏰ Tempo Esgotado!', 'Excelente trabalho! Sessão de foco concluída.');
     const targetSubject = subjects.find((s) => s.id === selectedSubjectId) || subjects[0];
     if (timerMode === 'pomodoro' && targetSubject) {
@@ -70,7 +48,46 @@ export const FocusScreen: React.FC = () => {
         notes: 'Sessão Pomodoro concluída com sucesso',
       });
     }
-  };
+  }, [subjects, selectedSubjectId, timerMode, addStudySession]);
+
+  const handleTimerCompleteRef = useRef(handleTimerComplete);
+  useEffect(() => {
+    handleTimerCompleteRef.current = handleTimerComplete;
+  });
+
+  useEffect(() => {
+    if (!isActive) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          setTimeout(() => {
+            setIsActive(false);
+            handleTimerCompleteRef.current();
+          }, 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isActive]);
 
   const handleToggleTimer = () => {
     setIsActive(!isActive);
