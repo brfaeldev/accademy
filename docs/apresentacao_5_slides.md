@@ -4,7 +4,7 @@
 **Docente:** Prof. Diego Fiori  
 **Projeto:** Controle de Estudos  
 **Grupo:** Bruno Rafael Barbosa (RA: 112944) e João Pedro Magrin (RA: 113164)  
-**Repositório:** [https://github.com/jpmfho22/academy](https://github.com/jpmfho22/academy)
+**Repositório:** [https://github.com/brfaeldev/accademy](https://github.com/brfaeldev/accademy)
 
 ---
 
@@ -59,7 +59,7 @@
   * Teste do CRUD de matérias e tarefas (alteração de status em 1 toque).
   * Demonstração da calculadora dinâmica de notas.
   * Demonstração do timer Pomodoro.
-* **Repositório GitHub:** `https://github.com/jpmfho22/academy`
+* **Repositório GitHub:** `https://github.com/brfaeldev/accademy`
 * **Próximos Passos do Projeto:**
   * Notificações locais (push notifications) para alertar sobre prazos de entregas na véspera;
   * Integração com calendário do dispositivo (Google Calendar);

@@ -10,7 +10,7 @@ Este projeto faz parte da disciplina de **Desenvolvimento de Aplicativos Móveis
 * **Bruno Rafael Barbosa** — RA: 112944
 * **João Pedro Magrin** — RA: 113164
 * **Docente Responsável:** Prof. Diego Fiori (`dfiori@fho.edu.br`)
-* **Repositório Oficial:** [github.com/jpmfho22/academy](https://github.com/jpmfho22/academy)
+* **Repositório Oficial:** [github.com/brfaeldev/accademy](https://github.com/brfaeldev/accademy)
 
 ---
 
@@ -93,8 +93,8 @@ academy/
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/jpmfho22/academy.git
-   cd academy
+   git clone https://github.com/brfaeldev/accademy.git
+   cd accademy
    ```
 
 2. **Instale as dependências:**
