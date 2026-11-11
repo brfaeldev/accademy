@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
+    <title>%WEB_TITLE%</title>
+
+    <!-- PWA Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Favicon e Ícones PWA -->
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+
+    <!-- Compatibilidade Mobile / PWA (iOS e Android) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Controle de Estudos" />
+    <meta name="theme-color" content="#4F46E5" />
+
+    <!-- Estilos de reset recomendados pelo react-native-web -->
+    <style id="expo-reset">
+      /* Faz com que html e body preencham toda a tela */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #F8FAFC;
+      }
+      /* Desabilita rolagem padrão do body para componentes ScrollView */
+      body {
+        overflow: hidden;
+      }
+      /* Faz o elemento root ocupar a tela inteira */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Fallback caso JavaScript esteja desabilitado -->
+    <noscript> Você precisa ativar o JavaScript no navegador para executar este aplicativo. </noscript>
+    <!-- Elemento raiz montado pelo React Native Web -->
+    <div id="root"></div>
+
+    <!-- Registro automático do Service Worker PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker
+            .register('/sw.js', { scope: '/' })
+            .then(function (registration) {
+              console.log('[PWA] Service Worker registrado com sucesso no escopo:', registration.scope);
+            })
+            .catch(function (error) {
+              console.warn('[PWA] Falha ao registrar Service Worker:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
+

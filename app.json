@@ -19,7 +19,21 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "name": "Controle de Estudos — Assistente Acadêmico",
+      "shortName": "ControleEstudos",
+      "description": "Assistente pessoal acadêmico para gestão de matérias, tarefas, notas e sessões de estudo.",
+      "themeColor": "#4F46E5",
+      "backgroundColor": "#F8FAFC",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "pt-BR",
+      "scope": "/",
+      "startUrl": "/"
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }
