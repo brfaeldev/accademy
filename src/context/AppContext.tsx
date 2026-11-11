@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Subject, Task, GradeItem, StudySession, AppState, TaskStatus } from '../types';
-import { StorageService } from '../services/storage';
+import { Subject, Task, GradeItem, StudySession, TaskStatus } from '../types';
+import {
+  initDatabase,
+  resetDatabase,
+  SubjectRepository,
+  TaskRepository,
+  GradeRepository,
+  StudySessionRepository,
+} from '../database';
 
 interface AppContextData {
   subjects: Subject[];
@@ -10,23 +17,23 @@ interface AppContextData {
   isLoading: boolean;
 
   // Disciplinas (CRUD)
-  addSubject: (subject: Omit<Subject, 'id'>) => void;
-  updateSubject: (subject: Subject) => void;
-  deleteSubject: (id: string) => void;
+  addSubject: (subject: Omit<Subject, 'id'>) => Promise<void>;
+  updateSubject: (subject: Subject) => Promise<void>;
+  deleteSubject: (id: string) => Promise<void>;
 
   // Tarefas (CRUD)
-  addTask: (task: Omit<Task, 'id'>) => void;
-  updateTask: (task: Task) => void;
-  deleteTask: (id: string) => void;
-  toggleTaskStatus: (id: string) => void;
+  addTask: (task: Omit<Task, 'id'>) => Promise<void>;
+  updateTask: (task: Task) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  toggleTaskStatus: (id: string) => Promise<void>;
 
   // Notas e Avaliações (CRUD)
-  addGrade: (grade: Omit<GradeItem, 'id'>) => void;
-  updateGrade: (grade: GradeItem) => void;
-  deleteGrade: (id: string) => void;
+  addGrade: (grade: Omit<GradeItem, 'id'>) => Promise<void>;
+  updateGrade: (grade: GradeItem) => Promise<void>;
+  deleteGrade: (id: string) => Promise<void>;
 
   // Foco / Pomodoro
-  addStudySession: (session: Omit<StudySession, 'id'>) => void;
+  addStudySession: (session: Omit<StudySession, 'id'>) => Promise<void>;
 
   // Métricas e Cálculos
   getSubjectAverage: (subjectId: string) => { average: number; totalWeight: number; passing: boolean };
@@ -43,15 +50,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Carregar dados iniciais
+  // Inicializa o banco SQLite, executa migrações/seed e carrega dados
   useEffect(() => {
     async function load() {
       try {
-        const state = await StorageService.loadState();
-        setSubjects(state.subjects);
-        setTasks(state.tasks);
-        setGrades(state.grades);
-        setStudySessions(state.studySessions);
+        await initDatabase();
+        const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] = await Promise.all([
+          SubjectRepository.getAll(),
+          TaskRepository.getAll(),
+          GradeRepository.getAll(),
+          StudySessionRepository.getAll(),
+        ]);
+        setSubjects(loadedSubjects);
+        setTasks(loadedTasks);
+        setGrades(loadedGrades);
+        setStudySessions(loadedSessions);
+      } catch (error) {
+        console.error('Erro ao inicializar SQLite:', error);
       } finally {
         setIsLoading(false);
       }
@@ -59,110 +74,119 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     load();
   }, []);
 
-  // Salvar automaticamente sempre que houver alterações
-  const persist = (nextState: Partial<AppState>) => {
-    const fullState: AppState = {
-      subjects: nextState.subjects ?? subjects,
-      tasks: nextState.tasks ?? tasks,
-      grades: nextState.grades ?? grades,
-      studySessions: nextState.studySessions ?? studySessions,
-    };
-    StorageService.saveState(fullState);
-  };
-
   // --- CRUD Disciplinas ---
-  const addSubject = (subject: Omit<Subject, 'id'>) => {
-    const newSubject: Subject = {
-      ...subject,
-      id: `sub-${Date.now()}`,
-    };
-    const updated = [newSubject, ...subjects];
-    setSubjects(updated);
-    persist({ subjects: updated });
+  const addSubject = async (subject: Omit<Subject, 'id'>) => {
+    try {
+      const newSubject = await SubjectRepository.create(subject);
+      setSubjects((prev) => [newSubject, ...prev]);
+    } catch (error) {
+      console.error('Erro ao adicionar disciplina:', error);
+    }
   };
 
-  const updateSubject = (subject: Subject) => {
-    const updated = subjects.map((s) => (s.id === subject.id ? subject : s));
-    setSubjects(updated);
-    persist({ subjects: updated });
+  const updateSubject = async (subject: Subject) => {
+    try {
+      await SubjectRepository.update(subject);
+      setSubjects((prev) => prev.map((s) => (s.id === subject.id ? subject : s)));
+    } catch (error) {
+      console.error('Erro ao atualizar disciplina:', error);
+    }
   };
 
-  const deleteSubject = (id: string) => {
-    const updatedSubjects = subjects.filter((s) => s.id !== id);
-    const updatedTasks = tasks.filter((t) => t.subjectId !== id);
-    const updatedGrades = grades.filter((g) => g.subjectId !== id);
-    setSubjects(updatedSubjects);
-    setTasks(updatedTasks);
-    setGrades(updatedGrades);
-    persist({ subjects: updatedSubjects, tasks: updatedTasks, grades: updatedGrades });
+  const deleteSubject = async (id: string) => {
+    try {
+      await SubjectRepository.delete(id);
+      // Chaves estrangeiras ON DELETE CASCADE removem do SQLite, sincronizamos o estado React
+      setSubjects((prev) => prev.filter((s) => s.id !== id));
+      setTasks((prev) => prev.filter((t) => t.subjectId !== id));
+      setGrades((prev) => prev.filter((g) => g.subjectId !== id));
+    } catch (error) {
+      console.error('Erro ao excluir disciplina:', error);
+    }
   };
 
   // --- CRUD Tarefas ---
-  const addTask = (task: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...task,
-      id: `task-${Date.now()}`,
-    };
-    const updated = [newTask, ...tasks];
-    setTasks(updated);
-    persist({ tasks: updated });
+  const addTask = async (task: Omit<Task, 'id'>) => {
+    try {
+      const newTask = await TaskRepository.create(task);
+      setTasks((prev) => [newTask, ...prev]);
+    } catch (error) {
+      console.error('Erro ao adicionar tarefa:', error);
+    }
   };
 
-  const updateTask = (task: Task) => {
-    const updated = tasks.map((t) => (t.id === task.id ? task : t));
-    setTasks(updated);
-    persist({ tasks: updated });
+  const updateTask = async (task: Task) => {
+    try {
+      await TaskRepository.update(task);
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
+    }
   };
 
-  const deleteTask = (id: string) => {
-    const updated = tasks.filter((t) => t.id !== id);
-    setTasks(updated);
-    persist({ tasks: updated });
+  const deleteTask = async (id: string) => {
+    try {
+      await TaskRepository.delete(id);
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+    } catch (error) {
+      console.error('Erro ao excluir tarefa:', error);
+    }
   };
 
-  const toggleTaskStatus = (id: string) => {
+  const toggleTaskStatus = async (id: string) => {
     const order: TaskStatus[] = ['Pendente', 'Em Andamento', 'Concluído'];
-    const updated = tasks.map((t) => {
-      if (t.id !== id) return t;
-      const nextIdx = (order.indexOf(t.status) + 1) % order.length;
-      return { ...t, status: order[nextIdx] };
-    });
-    setTasks(updated);
-    persist({ tasks: updated });
+    const current = tasks.find((t) => t.id === id);
+    if (!current) return;
+
+    const nextIdx = (order.indexOf(current.status) + 1) % order.length;
+    const nextStatus = order[nextIdx];
+
+    // Atualização otimista
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: nextStatus } : t)));
+
+    try {
+      await TaskRepository.toggleStatus(id);
+    } catch (error) {
+      console.error('Erro ao alternar status da tarefa no SQLite:', error);
+    }
   };
 
   // --- CRUD Notas ---
-  const addGrade = (grade: Omit<GradeItem, 'id'>) => {
-    const newGrade: GradeItem = {
-      ...grade,
-      id: `gr-${Date.now()}`,
-    };
-    const updated = [...grades, newGrade];
-    setGrades(updated);
-    persist({ grades: updated });
+  const addGrade = async (grade: Omit<GradeItem, 'id'>) => {
+    try {
+      const newGrade = await GradeRepository.create(grade);
+      setGrades((prev) => [...prev, newGrade]);
+    } catch (error) {
+      console.error('Erro ao adicionar nota:', error);
+    }
   };
 
-  const updateGrade = (grade: GradeItem) => {
-    const updated = grades.map((g) => (g.id === grade.id ? grade : g));
-    setGrades(updated);
-    persist({ grades: updated });
+  const updateGrade = async (grade: GradeItem) => {
+    try {
+      await GradeRepository.update(grade);
+      setGrades((prev) => prev.map((g) => (g.id === grade.id ? grade : g)));
+    } catch (error) {
+      console.error('Erro ao atualizar nota:', error);
+    }
   };
 
-  const deleteGrade = (id: string) => {
-    const updated = grades.filter((g) => g.id !== id);
-    setGrades(updated);
-    persist({ grades: updated });
+  const deleteGrade = async (id: string) => {
+    try {
+      await GradeRepository.delete(id);
+      setGrades((prev) => prev.filter((g) => g.id !== id));
+    } catch (error) {
+      console.error('Erro ao excluir nota:', error);
+    }
   };
 
   // --- Sessões de Estudo ---
-  const addStudySession = (session: Omit<StudySession, 'id'>) => {
-    const newSession: StudySession = {
-      ...session,
-      id: `sess-${Date.now()}`,
-    };
-    const updated = [newSession, ...studySessions];
-    setStudySessions(updated);
-    persist({ studySessions: updated });
+  const addStudySession = async (session: Omit<StudySession, 'id'>) => {
+    try {
+      const newSession = await StudySessionRepository.create(session);
+      setStudySessions((prev) => [newSession, ...prev]);
+    } catch (error) {
+      console.error('Erro ao adicionar sessão de estudo:', error);
+    }
   };
 
   // --- Cálculos e Simulador de Notas ---
@@ -192,8 +216,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const { average, totalWeight } = getSubjectAverage(subjectId);
     if (totalWeight === 0) return targetGrade;
 
-    // Fórmula: (MédiaAtual * PesoAtual + NotaFinal * PesoFinal) / (PesoAtual + PesoFinal) >= Target
-    // NotaFinal * PesoFinal >= Target * (PesoAtual + PesoFinal) - MédiaAtual * PesoAtual
     const requiredTotal = targetGrade * (totalWeight + finalExamWeight);
     const currentPoints = average * totalWeight;
     const needed = (requiredTotal - currentPoints) / finalExamWeight;
@@ -202,11 +224,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const resetAllData = async () => {
-    const defaults = await StorageService.resetToDefaults();
-    setSubjects(defaults.subjects);
-    setTasks(defaults.tasks);
-    setGrades(defaults.grades);
-    setStudySessions(defaults.studySessions);
+    try {
+      setIsLoading(true);
+      await resetDatabase();
+      const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] = await Promise.all([
+        SubjectRepository.getAll(),
+        TaskRepository.getAll(),
+        GradeRepository.getAll(),
+        StudySessionRepository.getAll(),
+      ]);
+      setSubjects(loadedSubjects);
+      setTasks(loadedTasks);
+      setGrades(loadedGrades);
+      setStudySessions(loadedSessions);
+    } catch (error) {
+      console.error('Erro ao resetar dados do SQLite:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
