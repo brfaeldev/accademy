@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  AppState as RNAppState,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { theme } from '../theme/theme';
@@ -34,8 +35,11 @@ export const FocusScreen: React.FC = () => {
   const [isActive, setIsActive] = useState<boolean>(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const endTimeRef = useRef<number | null>(null);
 
   const handleTimerComplete = useCallback(() => {
+    endTimeRef.current = null;
+    setIsActive(false);
     Alert.alert('⏰ Tempo Esgotado!', 'Excelente trabalho! Sessão de foco concluída.');
     const targetSubject = subjects.find((s) => s.id === selectedSubjectId) || subjects[0];
     if (timerMode === 'pomodoro' && targetSubject) {
@@ -55,6 +59,7 @@ export const FocusScreen: React.FC = () => {
     handleTimerCompleteRef.current = handleTimerComplete;
   });
 
+  // Temporizador principal com cálculo baseado em timestamp real (previne drift)
   useEffect(() => {
     if (!isActive) {
       if (timerRef.current) {
@@ -65,20 +70,19 @@ export const FocusScreen: React.FC = () => {
     }
 
     timerRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
-          setTimeout(() => {
-            setIsActive(false);
-            handleTimerCompleteRef.current();
-          }, 0);
-          return 0;
+      if (!endTimeRef.current) return;
+      const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+
+      if (remaining <= 0) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
         }
-        return prev - 1;
-      });
+        endTimeRef.current = null;
+        setIsActive(false);
+        handleTimerCompleteRef.current();
+      }
     }, 1000);
 
     return () => {
@@ -89,16 +93,50 @@ export const FocusScreen: React.FC = () => {
     };
   }, [isActive]);
 
+  // Sincroniza o cronômetro com o relógio do sistema quando o app retorna do segundo plano ou tela bloqueada
+  useEffect(() => {
+    const subscription = RNAppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active' && isActive && endTimeRef.current) {
+        const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+        setSecondsLeft(remaining);
+
+        if (remaining <= 0) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          endTimeRef.current = null;
+          setIsActive(false);
+          handleTimerCompleteRef.current();
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isActive]);
+
   const handleToggleTimer = () => {
-    setIsActive(!isActive);
+    if (isActive) {
+      // Ao pausar, anula o endTime para congelar a contagem
+      endTimeRef.current = null;
+      setIsActive(false);
+    } else {
+      // Ao iniciar/retomar, calcula o timestamp alvo exato a partir do tempo restante
+      endTimeRef.current = Date.now() + secondsLeft * 1000;
+      setIsActive(true);
+    }
   };
 
   const handleReset = () => {
+    endTimeRef.current = null;
     setIsActive(false);
     setSecondsLeft(getInitialSeconds(timerMode));
   };
 
   const handleChangeMode = (mode: 'pomodoro' | 'shortBreak' | 'longBreak') => {
+    endTimeRef.current = null;
     setIsActive(false);
     setTimerMode(mode);
     setSecondsLeft(getInitialSeconds(mode));
