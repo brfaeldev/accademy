@@ -110,7 +110,7 @@ export const AuthScreen: React.FC = () => {
           <View style={styles.logoBadge}>
             <Text style={styles.logoIcon}>🎓</Text>
           </View>
-          <Text style={styles.appTitle}>Academy</Text>
+          <Text style={styles.appTitle}>Accademy</Text>
           <Text style={styles.appSubtitle}>
             Gestão Acadêmica de Disciplinas, Tarefas e Notas
           </Text>

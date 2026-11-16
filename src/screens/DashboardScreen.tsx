@@ -52,7 +52,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   return (
     <View style={styles.container}>
       <Header
-        title="Controle de Estudos"
+        title="Accademy"
         subtitle={
           currentUser
             ? `Olá, ${currentUser.name}! 👋 Resumo do dia.`

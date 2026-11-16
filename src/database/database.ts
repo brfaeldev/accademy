@@ -4,25 +4,25 @@ import { CREATE_TABLES_SQL, CREATE_INDEXES_SQL } from './schema';
 import { clearAllTables } from './seed';
 import { logSQL } from './logger';
 
-const DATABASE_NAME = 'academy.db';
+const DATABASE_NAME = 'accademy.db';
 
 // Cache global no globalThis para evitar múltiplas aberturas e conflitos de VFS durante Hot Reload (HMR)
 const g = globalThis as unknown as {
-  __academy_sqlite_instance__?: SQLite.SQLiteDatabase | null;
-  __academy_sqlite_promise__?: Promise<SQLite.SQLiteDatabase> | null;
-  __academy_sqlite_init_promise__?: Promise<SQLite.SQLiteDatabase> | null;
+  __accademy_sqlite_instance__?: SQLite.SQLiteDatabase | null;
+  __accademy_sqlite_promise__?: Promise<SQLite.SQLiteDatabase> | null;
+  __accademy_sqlite_init_promise__?: Promise<SQLite.SQLiteDatabase> | null;
 };
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (g.__academy_sqlite_instance__) {
-    return g.__academy_sqlite_instance__;
+  if (g.__accademy_sqlite_instance__) {
+    return g.__accademy_sqlite_instance__;
   }
 
-  if (g.__academy_sqlite_promise__) {
-    return await g.__academy_sqlite_promise__;
+  if (g.__accademy_sqlite_promise__) {
+    return await g.__accademy_sqlite_promise__;
   }
 
-  g.__academy_sqlite_promise__ = (async () => {
+  g.__accademy_sqlite_promise__ = (async () => {
     let db: SQLite.SQLiteDatabase;
     try {
       db = await SQLite.openDatabaseAsync(DATABASE_NAME);
@@ -45,15 +45,15 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
         throw err;
       }
     }
-    g.__academy_sqlite_instance__ = db;
+    g.__accademy_sqlite_instance__ = db;
     return db;
   })();
 
   try {
-    const db = await g.__academy_sqlite_promise__;
+    const db = await g.__accademy_sqlite_promise__;
     return db;
   } catch (e) {
-    g.__academy_sqlite_promise__ = null;
+    g.__accademy_sqlite_promise__ = null;
     throw e;
   }
 }
@@ -81,11 +81,11 @@ async function ensureColumnExists(
 }
 
 export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (g.__academy_sqlite_init_promise__) {
-    return await g.__academy_sqlite_init_promise__;
+  if (g.__accademy_sqlite_init_promise__) {
+    return await g.__accademy_sqlite_init_promise__;
   }
 
-  g.__academy_sqlite_init_promise__ = (async () => {
+  g.__accademy_sqlite_init_promise__ = (async () => {
     const db = await getDatabase();
     logSQL('INIT', 'Criando tabelas e índices relacionais...');
 
@@ -109,16 +109,16 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
   })();
 
   try {
-    const db = await g.__academy_sqlite_init_promise__;
+    const db = await g.__accademy_sqlite_init_promise__;
     return db;
   } catch (e) {
-    g.__academy_sqlite_init_promise__ = null;
+    g.__accademy_sqlite_init_promise__ = null;
     throw e;
   }
 }
 
 export async function resetDatabase(): Promise<void> {
-  g.__academy_sqlite_init_promise__ = null;
+  g.__accademy_sqlite_init_promise__ = null;
   const db = await getDatabase();
   logSQL('RESET', 'Limpando todas as tabelas do banco...');
   await clearAllTables(db);
@@ -204,10 +204,10 @@ export async function dumpDatabase(): Promise<void> {
 }
 
 /**
- * Faz download do arquivo físico academy.db no navegador
+ * Faz download do arquivo físico accademy.db no navegador
  */
 export function downloadDatabaseFile(): void {
-  const db = g.__academy_sqlite_instance__;
+  const db = g.__accademy_sqlite_instance__;
   if (Platform.OS !== 'web' || !db) {
     console.warn('O download só está disponível no navegador e com banco aberto.');
     return;
@@ -218,10 +218,10 @@ export function downloadDatabaseFile(): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'academy.db';
+    a.download = 'accademy.db';
     a.click();
     URL.revokeObjectURL(url);
-    console.log('%c✅ Arquivo "academy.db" baixado com sucesso! Você pode abri-lo no DB Browser for SQLite ou em https://sqliteviewer.app', 'color: #059669; font-weight: bold;');
+    console.log('%c✅ Arquivo "accademy.db" baixado com sucesso! Você pode abri-lo no DB Browser for SQLite ou em https://sqliteviewer.app', 'color: #059669; font-weight: bold;');
   } catch (e) {
     console.error('Erro ao exportar arquivo do banco:', e);
   }

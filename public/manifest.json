@@ -1,6 +1,6 @@
 {
-  "name": "Controle de Estudos — Assistente Acadêmico",
-  "short_name": "ControleEstudos",
+  "name": "Accademy — Controle de Estudos",
+  "short_name": "Accademy",
   "description": "Assistente pessoal acadêmico para gestão de matérias, tarefas, notas e sessões de estudo.",
   "start_url": "/",
   "scope": "/",

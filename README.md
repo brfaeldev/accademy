@@ -1,4 +1,4 @@
-# 📱 Controle de Estudos — Academy App
+# 📱 Accademy — Controle de Estudos
 
 Aplicativo multiplataforma (**Android, iOS e Web/PWA**) desenvolvido em **React Native**, **TypeScript** e **Expo**, voltado para a organização e acompanhamento da rotina acadêmica universitária.
 
@@ -38,7 +38,7 @@ O aplicativo possui **6 telas** integradas ao banco de dados local:
 
 ## 🗄️ Banco de Dados Relacional (SQLite)
 
-Persistência local gerenciada via `expo-sqlite` (`academy.db`) com `PRAGMA foreign_keys = ON`, índices relacionais e integridade referencial:
+Persistência local gerenciada via `expo-sqlite` (`accademy.db`) com `PRAGMA foreign_keys = ON`, índices relacionais e integridade referencial:
 
 | Tabela | Colunas | Relacionamentos |
 | :--- | :--- | :--- |
@@ -63,7 +63,7 @@ Persistência local gerenciada via `expo-sqlite` (`academy.db`) com `PRAGMA fore
 ## 🏗️ Estrutura do Projeto
 
 ```text
-academy/
+accademy/
 ├── assets/                 # Ícones e splash screen do aplicativo
 ├── public/                 # Manifesto, ícones e Service Worker para suporte Web/PWA
 ├── src/

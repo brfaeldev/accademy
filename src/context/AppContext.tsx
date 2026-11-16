@@ -27,7 +27,7 @@ import {
   PomodoroTimerController,
 } from '../hooks/usePomodoroTimer';
 
-const AUTH_SESSION_KEY = '@academy_logged_user_id';
+const AUTH_SESSION_KEY = '@accademy_logged_user_id';
 
 interface AppContextData {
   subjects: Subject[];

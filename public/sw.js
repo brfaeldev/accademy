@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controle-estudos-pwa-v1';
+const CACHE_NAME = 'accademy-pwa-v1';
 
 const STATIC_ASSETS = [
   '/',

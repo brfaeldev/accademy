@@ -44,7 +44,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <FormField
         label="E-mail de Cadastro"
         icon="✉️"
-        placeholder="ex: bruno@academy.com"
+        placeholder="ex: bruno@accademy.com"
         value={email}
         onChangeText={(t) => {
           setEmail(t);

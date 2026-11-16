@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Controle de Estudos",
-    "slug": "controle-de-estudos",
+    "name": "Accademy",
+    "slug": "accademy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,8 +21,8 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "output": "single",
-      "name": "Controle de Estudos — Assistente Acadêmico",
-      "shortName": "ControleEstudos",
+      "name": "Accademy — Controle de Estudos",
+      "shortName": "Accademy",
       "description": "Assistente pessoal acadêmico para gestão de matérias, tarefas, notas e sessões de estudo.",
       "themeColor": "#4F46E5",
       "backgroundColor": "#F8FAFC",
