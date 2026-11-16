@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Subject, Task, GradeItem, StudySession, TaskStatus } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Subject, Task, GradeItem, StudySession, TaskStatus, User } from '../types';
 import {
   initDatabase,
   resetDatabase,
@@ -7,7 +8,10 @@ import {
   TaskRepository,
   GradeRepository,
   StudySessionRepository,
+  UserRepository,
 } from '../database';
+
+const AUTH_SESSION_KEY = '@academy_logged_user_id';
 
 interface AppContextData {
   subjects: Subject[];
@@ -15,6 +19,19 @@ interface AppContextData {
   grades: GradeItem[];
   studySessions: StudySession[];
   isLoading: boolean;
+
+  // Autenticação e Usuários
+  currentUser: User | null;
+  availableAccounts: User[];
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: {
+    name: string;
+    email: string;
+    password: string;
+    course?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  refreshAccounts: () => Promise<void>;
 
   // Disciplinas (CRUD)
   addSubject: (subject: Omit<Subject, 'id'>) => Promise<void>;
@@ -48,23 +65,71 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [grades, setGrades] = useState<GradeItem[]>([]);
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [availableAccounts, setAvailableAccounts] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Inicializa o banco SQLite, executa migrações/seed e carrega dados
+  const refreshAccounts = async () => {
+    try {
+      const users = await UserRepository.getAll();
+      setAvailableAccounts(users);
+    } catch (error) {
+      console.error('Erro ao listar contas do banco SQLite:', error);
+    }
+  };
+
+  const loadUserData = async (userId: string) => {
+    try {
+      const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] = await Promise.all([
+        SubjectRepository.getAll(userId),
+        TaskRepository.getAll(userId),
+        GradeRepository.getAll(userId),
+        StudySessionRepository.getAll(userId),
+      ]);
+      setSubjects(loadedSubjects);
+      setTasks(loadedTasks);
+      setGrades(loadedGrades);
+      setStudySessions(loadedSessions);
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
+  };
+
+  // Inicializa o banco SQLite, executa migrações/limpeza e restaura sessão se houver
   useEffect(() => {
     async function load() {
       try {
         await initDatabase();
-        const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] = await Promise.all([
-          SubjectRepository.getAll(),
-          TaskRepository.getAll(),
-          GradeRepository.getAll(),
-          StudySessionRepository.getAll(),
-        ]);
-        setSubjects(loadedSubjects);
-        setTasks(loadedTasks);
-        setGrades(loadedGrades);
-        setStudySessions(loadedSessions);
+        const loadedUsers = await UserRepository.getAll();
+        setAvailableAccounts(loadedUsers);
+
+        // Restaura a sessão do usuário caso exista no AsyncStorage
+        try {
+          const savedUserId = await AsyncStorage.getItem(AUTH_SESSION_KEY);
+          if (savedUserId) {
+            const user = await UserRepository.getById(savedUserId);
+            if (user) {
+              setCurrentUser(user);
+              await loadUserData(user.id);
+            } else {
+              await AsyncStorage.removeItem(AUTH_SESSION_KEY);
+              setSubjects([]);
+              setTasks([]);
+              setGrades([]);
+              setStudySessions([]);
+            }
+          } else {
+            setSubjects([]);
+            setTasks([]);
+            setGrades([]);
+            setStudySessions([]);
+          }
+        } catch {
+          setSubjects([]);
+          setTasks([]);
+          setGrades([]);
+          setStudySessions([]);
+        }
       } catch (error) {
         console.error('Erro ao inicializar SQLite:', error);
       } finally {
@@ -74,10 +139,93 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     load();
   }, []);
 
+  // --- Autenticação e Gestão de Contas ---
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!email.trim() || !password) {
+        return { success: false, error: 'Preencha o e-mail e a senha para entrar.' };
+      }
+
+      // Validação no banco de dados SQLite
+      const user = await UserRepository.authenticate(email, password);
+      setCurrentUser(user);
+      await AsyncStorage.setItem(AUTH_SESSION_KEY, user.id);
+      await loadUserData(user.id);
+      await refreshAccounts();
+      return { success: true };
+    } catch (error: any) {
+      console.error('Erro no login:', error);
+      return {
+        success: false,
+        error: error.message || 'Falha ao autenticar. Tente novamente.',
+      };
+    }
+  };
+
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    course?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!data.name.trim()) {
+        return { success: false, error: 'O nome completo é obrigatório.' };
+      }
+      if (!data.email.trim() || !data.email.includes('@')) {
+        return { success: false, error: 'Insira um endereço de e-mail válido.' };
+      }
+      if (!data.password || data.password.length < 3) {
+        return { success: false, error: 'A senha deve possuir pelo menos 3 caracteres.' };
+      }
+
+      // Criação da conta no SQLite
+      const newUser = await UserRepository.create({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        course: data.course,
+      });
+
+      setCurrentUser(newUser);
+      // Conta criada começa 100% limpa, sem nenhum mock ou dados imputados
+      setSubjects([]);
+      setTasks([]);
+      setGrades([]);
+      setStudySessions([]);
+      await AsyncStorage.setItem(AUTH_SESSION_KEY, newUser.id);
+      await refreshAccounts();
+      return { success: true };
+    } catch (error: any) {
+      console.error('Erro no cadastro:', error);
+      return {
+        success: false,
+        error: error.message || 'Falha ao criar conta. Tente novamente.',
+      };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setCurrentUser(null);
+      setSubjects([]);
+      setTasks([]);
+      setGrades([]);
+      setStudySessions([]);
+      await AsyncStorage.removeItem(AUTH_SESSION_KEY);
+      await refreshAccounts();
+    } catch (error) {
+      console.error('Erro ao sair da conta:', error);
+    }
+  };
+
   // --- CRUD Disciplinas ---
   const addSubject = async (subject: Omit<Subject, 'id'>) => {
     try {
-      const newSubject = await SubjectRepository.create(subject);
+      const newSubject = await SubjectRepository.create(subject, currentUser?.id);
       setSubjects((prev) => [newSubject, ...prev]);
     } catch (error) {
       console.error('Erro ao adicionar disciplina:', error);
@@ -182,7 +330,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- Sessões de Estudo ---
   const addStudySession = async (session: Omit<StudySession, 'id'>) => {
     try {
-      const newSession = await StudySessionRepository.create(session);
+      const newSession = await StudySessionRepository.create(session, currentUser?.id);
       setStudySessions((prev) => [newSession, ...prev]);
     } catch (error) {
       console.error('Erro ao adicionar sessão de estudo:', error);
@@ -227,16 +375,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       setIsLoading(true);
       await resetDatabase();
-      const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] = await Promise.all([
-        SubjectRepository.getAll(),
-        TaskRepository.getAll(),
-        GradeRepository.getAll(),
-        StudySessionRepository.getAll(),
-      ]);
-      setSubjects(loadedSubjects);
-      setTasks(loadedTasks);
-      setGrades(loadedGrades);
-      setStudySessions(loadedSessions);
+      setSubjects([]);
+      setTasks([]);
+      setGrades([]);
+      setStudySessions([]);
+      setAvailableAccounts([]);
+      setCurrentUser(null);
+      await AsyncStorage.removeItem(AUTH_SESSION_KEY);
     } catch (error) {
       console.error('Erro ao resetar dados do SQLite:', error);
     } finally {
@@ -252,6 +397,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         grades,
         studySessions,
         isLoading,
+        currentUser,
+        availableAccounts,
+        login,
+        register,
+        logout,
+        refreshAccounts,
         addSubject,
         updateSubject,
         deleteSubject,

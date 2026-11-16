@@ -18,7 +18,7 @@ interface DashboardScreenProps {
 }
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTab }) => {
-  const { subjects, tasks, grades, studySessions, toggleTaskStatus } = useApp();
+  const { subjects, tasks, grades, studySessions, toggleTaskStatus, currentUser, logout } = useApp();
 
   // Próximas tarefas (próximos 7 dias)
   const pendingTasks = tasks.filter((t) => t.status !== 'Concluído');
@@ -46,13 +46,49 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
     <View style={styles.container}>
       <Header
         title="Controle de Estudos"
-        subtitle="Bem-vindo de volta! Resumo acadêmico do dia."
+        subtitle={
+          currentUser
+            ? `Olá, ${currentUser.name}! 👋 Resumo do dia.`
+            : 'Bem-vindo de volta! Resumo acadêmico do dia.'
+        }
+        rightAction={{
+          icon: '🚪',
+          label: 'Sair',
+          onPress: logout,
+        }}
       />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Banner do Estudante Logado */}
+        {currentUser ? (
+          <View style={styles.userBanner}>
+            <View style={styles.userAvatar}>
+              <Text style={styles.userAvatarText}>
+                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '👤'}
+              </Text>
+            </View>
+            <View style={styles.userInfo}>
+              <View style={styles.userNameRow}>
+                <Text style={styles.userName}>{currentUser.name}</Text>
+                <Badge label="Online no SQLite" variant="status" status="Concluído" size="sm" />
+              </View>
+              <Text style={styles.userSub}>
+                {currentUser.email}
+                {currentUser.course ? ` • ${currentUser.course}` : ''}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={logout}
+              style={styles.logoutPill}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.logoutPillText}>Sair</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
         {/* Metric Banner Cards */}
         <View style={styles.metricsRow}>
           <TouchableOpacity
@@ -97,25 +133,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           </TouchableOpacity>
         </View>
 
-        <Card highlightColor={theme.colors.primary}>
-          <View style={styles.classHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.className}>{nextClass.name}</Text>
-              <Text style={styles.classProfessor}>Docente: {nextClass.professor}</Text>
+        {subjects.length === 0 ? (
+          <Card>
+            <Text style={styles.emptyText}>
+              📚 Nenhuma matéria cadastrada ainda. Toque em &quot;Ver Todas&quot; para cadastrar sua primeira matéria!
+            </Text>
+          </Card>
+        ) : (
+          <Card highlightColor={nextClass.color || theme.colors.primary}>
+            <View style={styles.classHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.className}>{nextClass.name}</Text>
+                <Text style={styles.classProfessor}>Docente: {nextClass.professor}</Text>
+              </View>
+              <Badge label="Hoje" color={nextClass.color || theme.colors.primary} variant="subject" />
             </View>
-            <Badge label="Hoje" color={theme.colors.primary} variant="subject" />
-          </View>
-          <View style={styles.classDetails}>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailIcon}>🏛</Text>
-              <Text style={styles.detailText}>{nextClass.location}</Text>
+            <View style={styles.classDetails}>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailIcon}>🏛</Text>
+                <Text style={styles.detailText}>{nextClass.location}</Text>
+              </View>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailIcon}>🕒</Text>
+                <Text style={styles.detailText}>{nextClass.schedule}</Text>
+              </View>
             </View>
-            <View style={styles.detailItem}>
-              <Text style={styles.detailIcon}>🕒</Text>
-              <Text style={styles.detailText}>{nextClass.schedule}</Text>
-            </View>
-          </View>
-        </Card>
+          </Card>
+        )}
 
         {/* Card: Próximos 7 Dias (Tarefas e Provas) */}
         <View style={styles.sectionHeader}>
@@ -379,5 +423,63 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: theme.colors.textMuted,
     marginTop: 2,
+  },
+  userBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.soft,
+  },
+  userAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+  },
+  userAvatarText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.primary,
+  },
+  userInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  userNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  userName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+  },
+  userSub: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  logoutPill: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.dangerLight,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  logoutPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.dangerText,
   },
 });

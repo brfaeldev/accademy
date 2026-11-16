@@ -6,4 +6,5 @@ export * from './repositories/SubjectRepository';
 export * from './repositories/TaskRepository';
 export * from './repositories/GradeRepository';
 export * from './repositories/StudySessionRepository';
+export * from './repositories/UserRepository';
 

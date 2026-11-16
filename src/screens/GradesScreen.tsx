@@ -181,7 +181,14 @@ export const GradesScreen: React.FC = () => {
         {/* VISÃO GERAL: BARRAS DE PROGRESSO POR MATÉRIA */}
         <Text style={styles.sectionHeader}>📊 Média Atingida por Disciplina</Text>
 
-        {subjects.map((sub) => {
+        {subjects.length === 0 ? (
+          <Card>
+            <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, padding: 16 }}>
+              📚 Nenhuma disciplina cadastrada. Cadastre suas matérias na aba &quot;Matérias&quot; para acompanhar médias e notas.
+            </Text>
+          </Card>
+        ) : (
+          subjects.map((sub) => {
           const stats = getSubjectAverage(sub.id);
           const subGrades = grades.filter((g) => g.subjectId === sub.id);
           const target = sub.targetGrade ?? 7.0;
@@ -242,7 +249,7 @@ export const GradesScreen: React.FC = () => {
               </View>
             </Card>
           );
-        })}
+        }))}
       </ScrollView>
 
       {/* Modal Lançar Nova Nota */}

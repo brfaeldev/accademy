@@ -1,7 +1,8 @@
-import { Subject, Task, GradeItem, StudySession } from '../types';
+import { Subject, Task, GradeItem, StudySession, User } from '../types';
 
 export interface SubjectRow {
   id: string;
+  user_id: string | null;
   name: string;
   code: string;
   professor: string;
@@ -33,6 +34,7 @@ export interface GradeRow {
 
 export interface StudySessionRow {
   id: string;
+  user_id: string | null;
   subject_id: string | null;
   subject_name: string;
   duration_minutes: number;
@@ -41,9 +43,19 @@ export interface StudySessionRow {
   notes: string | null;
 }
 
+export interface UserRow {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  course: string | null;
+  created_at: string;
+}
+
 export function mapSubjectFromRow(row: SubjectRow): Subject {
   return {
     id: row.id,
+    userId: row.user_id ?? undefined,
     name: row.name,
     code: row.code,
     professor: row.professor,
@@ -81,12 +93,24 @@ export function mapGradeFromRow(row: GradeRow): GradeItem {
 export function mapStudySessionFromRow(row: StudySessionRow): StudySession {
   return {
     id: row.id,
+    userId: row.user_id ?? undefined,
     subjectId: row.subject_id ?? '',
     subjectName: row.subject_name,
     durationMinutes: row.duration_minutes,
     timestamp: row.timestamp,
     date: row.date,
     notes: row.notes ?? undefined,
+  };
+}
+
+export function mapUserFromRow(row: UserRow): User {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    password: row.password,
+    course: row.course ?? undefined,
+    createdAt: row.created_at,
   };
 }
 

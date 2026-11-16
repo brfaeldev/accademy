@@ -4,10 +4,20 @@ import { TaskRow, mapTaskFromRow } from '../types';
 import { logSQL } from '../logger';
 
 export const TaskRepository = {
-  async getAll(): Promise<Task[]> {
+  async getAll(userId?: string): Promise<Task[]> {
     const db = await getDatabase();
+    if (userId) {
+      const sql = `SELECT t.* FROM tasks t
+        INNER JOIN subjects s ON t.subject_id = s.id
+        WHERE s.user_id = ?
+        ORDER BY t.due_date ASC`;
+      logSQL('SELECT_USER_TASKS', sql, [userId]);
+      const rows = await db.getAllAsync<TaskRow>(sql, [userId]);
+      return rows.map(mapTaskFromRow);
+    }
+
     const sql = 'SELECT * FROM tasks ORDER BY due_date ASC';
-    logSQL('SELECT', sql);
+    logSQL('SELECT_ALL_TASKS', sql);
     const rows = await db.getAllAsync<TaskRow>(sql);
     return rows.map(mapTaskFromRow);
   },
@@ -80,17 +90,17 @@ export const TaskRepository = {
     await db.runAsync(sql, [id]);
   },
 
-  async toggleStatus(id: string): Promise<TaskStatus | null> {
-    const db = await getDatabase();
+  async toggleStatus(id: string): Promise<TaskStatus> {
     const current = await this.getById(id);
-    if (!current) return null;
+    if (!current) throw new Error('Tarefa não encontrada');
 
     const order: TaskStatus[] = ['Pendente', 'Em Andamento', 'Concluído'];
     const nextIdx = (order.indexOf(current.status) + 1) % order.length;
     const nextStatus = order[nextIdx];
 
+    const db = await getDatabase();
     const sql = 'UPDATE tasks SET status = ? WHERE id = ?';
-    logSQL('UPDATE_STATUS', sql, [nextStatus, id]);
+    logSQL('TOGGLE_STATUS', sql, [nextStatus, id]);
     await db.runAsync(sql, [nextStatus, id]);
 
     return nextStatus;

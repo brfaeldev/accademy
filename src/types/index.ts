@@ -4,6 +4,7 @@ export type TaskType = 'Prova' | 'Trabalho' | 'Lista' | 'Seminário' | 'Outro';
 
 export interface Subject {
   id: string;
+  userId?: string;
   name: string;
   code: string;
   professor: string;
@@ -35,6 +36,7 @@ export interface GradeItem {
 
 export interface StudySession {
   id: string;
+  userId?: string;
   subjectId: string;
   subjectName: string;
   durationMinutes: number; // tempo dedicado
@@ -43,9 +45,19 @@ export interface StudySession {
   notes?: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  course?: string;
+  createdAt: string;
+}
+
 export interface AppState {
   subjects: Subject[];
   tasks: Task[];
   grades: GradeItem[];
   studySessions: StudySession[];
+  currentUser?: User | null;
 }

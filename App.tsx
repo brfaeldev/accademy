@@ -18,10 +18,24 @@ import { SubjectsScreen } from './src/screens/SubjectsScreen';
 import { TasksScreen } from './src/screens/TasksScreen';
 import { GradesScreen } from './src/screens/GradesScreen';
 import { FocusScreen } from './src/screens/FocusScreen';
+import { AuthScreen } from './src/screens/AuthScreen';
 
 const MainNavigator: React.FC = () => {
-  const { isLoading, tasks } = useApp();
+  const { isLoading, tasks, currentUser } = useApp();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  // Se o usuário não estiver autenticado, exibe a tela de login / criação de conta
+  if (!currentUser) {
+    return <AuthScreen />;
+  }
 
   const pendingCount = tasks.filter((t) => t.status !== 'Concluído').length;
 
@@ -32,14 +46,6 @@ const MainNavigator: React.FC = () => {
     { id: 'grades', label: 'Boletim', icon: '📊' },
     { id: 'focus', label: 'Foco', icon: '⏱' },
   ];
-
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
 
   const renderScreen = () => {
     switch (activeTab) {

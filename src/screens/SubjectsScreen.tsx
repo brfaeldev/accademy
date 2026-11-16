@@ -120,7 +120,24 @@ export const SubjectsScreen: React.FC = () => {
           Total: {subjects.length} matéria{subjects.length !== 1 ? 's' : ''} no período
         </Text>
 
-        {subjects.map((item) => {
+        {subjects.length === 0 ? (
+          <Card style={{ padding: 24, alignItems: 'center' }}>
+            <Text style={{ fontSize: 32, marginBottom: 8 }}>📚</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.colors.textPrimary, marginBottom: 4 }}>
+              Nenhuma matéria cadastrada
+            </Text>
+            <Text style={{ fontSize: 13, color: theme.colors.textSecondary, textAlign: 'center', marginBottom: 16 }}>
+              Toque no botão &quot;+ Nova Matéria&quot; acima para adicionar sua primeira disciplina.
+            </Text>
+            <Button
+              title="+ Cadastrar Primeira Matéria"
+              variant="primary"
+              size="sm"
+              onPress={handleOpenCreate}
+            />
+          </Card>
+        ) : (
+          subjects.map((item) => {
           const stats = getSubjectAverage(item.id);
           return (
             <Card key={item.id} highlightColor={item.color} style={styles.subjectCard}>
@@ -193,7 +210,7 @@ export const SubjectsScreen: React.FC = () => {
               </View>
             </Card>
           );
-        })}
+        }))}
       </ScrollView>
 
       {/* Modal de Criação / Edição de Disciplina */}

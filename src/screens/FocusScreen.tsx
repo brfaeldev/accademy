@@ -42,10 +42,10 @@ export const FocusScreen: React.FC = () => {
     setIsActive(false);
     Alert.alert('⏰ Tempo Esgotado!', 'Excelente trabalho! Sessão de foco concluída.');
     const targetSubject = subjects.find((s) => s.id === selectedSubjectId) || subjects[0];
-    if (timerMode === 'pomodoro' && targetSubject) {
+    if (timerMode === 'pomodoro') {
       addStudySession({
-        subjectId: targetSubject.id,
-        subjectName: targetSubject.name,
+        subjectId: targetSubject?.id ?? '',
+        subjectName: targetSubject?.name ?? 'Estudo Geral',
         durationMinutes: 25,
         date: new Date().toISOString().split('T')[0],
         timestamp: new Date().toISOString(),
@@ -225,25 +225,31 @@ export const FocusScreen: React.FC = () => {
           {/* Seletor de Matéria Vinculada */}
           <View style={styles.subSelectArea}>
             <Text style={styles.subSelectLabel}>Matéria em foco:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
-              {subjects.map((sub) => {
-                const isSelected = (currentSubject?.id ?? '') === sub.id;
-                return (
-                  <TouchableOpacity
-                    key={sub.id}
-                    style={[
-                      styles.subChip,
-                      isSelected && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-                    ]}
-                    onPress={() => setSelectedSubjectId(sub.id)}
-                  >
-                    <Text style={[styles.subChipText, isSelected && { color: '#FFF', fontWeight: '700' }]}>
-                      {sub.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+            {subjects.length === 0 ? (
+              <Text style={{ fontSize: 12, color: theme.colors.textMuted, fontStyle: 'italic', marginTop: 4 }}>
+                Nenhuma matéria cadastrada (sessão geral de foco)
+              </Text>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+                {subjects.map((sub) => {
+                  const isSelected = (currentSubject?.id ?? '') === sub.id;
+                  return (
+                    <TouchableOpacity
+                      key={sub.id}
+                      style={[
+                        styles.subChip,
+                        isSelected && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+                      ]}
+                      onPress={() => setSelectedSubjectId(sub.id)}
+                    >
+                      <Text style={[styles.subChipText, isSelected && { color: '#FFF', fontWeight: '700' }]}>
+                        {sub.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
           </View>
 
           {/* Relógio Digital */}

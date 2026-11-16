@@ -4,10 +4,16 @@ import { SubjectRow, mapSubjectFromRow } from '../types';
 import { logSQL } from '../logger';
 
 export const SubjectRepository = {
-  async getAll(): Promise<Subject[]> {
+  async getAll(userId?: string): Promise<Subject[]> {
     const db = await getDatabase();
+    if (userId) {
+      const sql = 'SELECT * FROM subjects WHERE user_id = ? ORDER BY name ASC';
+      logSQL('SELECT_USER_SUBJECTS', sql, [userId]);
+      const rows = await db.getAllAsync<SubjectRow>(sql, [userId]);
+      return rows.map(mapSubjectFromRow);
+    }
     const sql = 'SELECT * FROM subjects ORDER BY name ASC';
-    logSQL('SELECT', sql);
+    logSQL('SELECT_ALL_SUBJECTS', sql);
     const rows = await db.getAllAsync<SubjectRow>(sql);
     return rows.map(mapSubjectFromRow);
   },
@@ -15,24 +21,28 @@ export const SubjectRepository = {
   async getById(id: string): Promise<Subject | null> {
     const db = await getDatabase();
     const sql = 'SELECT * FROM subjects WHERE id = ?';
-    logSQL('SELECT_ONE', sql, [id]);
+    logSQL('SELECT_ONE_SUBJECT', sql, [id]);
     const row = await db.getFirstAsync<SubjectRow>(sql, [id]);
     return row ? mapSubjectFromRow(row) : null;
   },
 
-  async create(subject: Omit<Subject, 'id'>): Promise<Subject> {
+  async create(subject: Omit<Subject, 'id'>, userId?: string): Promise<Subject> {
     const db = await getDatabase();
     const id = `sub-${Date.now()}`;
+    const targetUserId = userId || subject.userId;
+
     const newSubject: Subject = {
       ...subject,
       id,
+      userId: targetUserId,
       targetGrade: subject.targetGrade ?? 7.0,
     };
 
-    const sql = `INSERT INTO subjects (id, name, code, professor, professor_email, location, schedule, color, target_grade)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO subjects (id, user_id, name, code, professor, professor_email, location, schedule, color, target_grade)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const params = [
       newSubject.id,
+      newSubject.userId ?? null,
       newSubject.name,
       newSubject.code,
       newSubject.professor,
@@ -42,7 +52,7 @@ export const SubjectRepository = {
       newSubject.color,
       newSubject.targetGrade ?? 7.0,
     ];
-    logSQL('INSERT', sql, params);
+    logSQL('INSERT_SUBJECT', sql, params);
     await db.runAsync(sql, params);
 
     return newSubject;
@@ -64,14 +74,14 @@ export const SubjectRepository = {
       subject.targetGrade ?? 7.0,
       subject.id,
     ];
-    logSQL('UPDATE', sql, params);
+    logSQL('UPDATE_SUBJECT', sql, params);
     await db.runAsync(sql, params);
   },
 
   async delete(id: string): Promise<void> {
     const db = await getDatabase();
     const sql = 'DELETE FROM subjects WHERE id = ?';
-    logSQL('DELETE', sql, [id]);
+    logSQL('DELETE_SUBJECT', sql, [id]);
     await db.runAsync(sql, [id]);
   },
 };
