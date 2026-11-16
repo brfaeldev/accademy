@@ -2,6 +2,7 @@ import { getDatabase } from '../database';
 import { GradeItem } from '../../types';
 import { GradeRow, mapGradeFromRow } from '../types';
 import { logSQL } from '../logger';
+import { generateId } from '../../utils/formatters';
 
 export const GradeRepository = {
   async getAll(userId?: string): Promise<GradeItem[]> {
@@ -32,7 +33,7 @@ export const GradeRepository = {
 
   async create(grade: Omit<GradeItem, 'id'>): Promise<GradeItem> {
     const db = await getDatabase();
-    const id = `gr-${Date.now()}`;
+    const id = generateId('gr');
     const newGrade: GradeItem = {
       ...grade,
       id,

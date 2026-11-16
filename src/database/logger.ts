@@ -1,8 +1,12 @@
 import { Platform } from 'react-native';
 
 export function logSQL(action: string, sql: string, params?: unknown[]) {
+  if (typeof __DEV__ !== 'undefined' && !__DEV__) {
+    return;
+  }
+
   const cleanSql = sql.replace(/\s+/g, ' ').trim();
-  
+
   if (Platform.OS === 'web') {
     console.log(
       `%c[SQLITE 🗄️] %c${action}%c ${cleanSql}`,
@@ -15,4 +19,3 @@ export function logSQL(action: string, sql: string, params?: unknown[]) {
     console.log(`[SQLITE] [${action}] ${cleanSql}`, params ? JSON.stringify(params) : '');
   }
 }
-

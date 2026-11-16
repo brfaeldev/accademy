@@ -2,6 +2,7 @@ import { getDatabase } from '../database';
 import { Subject } from '../../types';
 import { SubjectRow, mapSubjectFromRow } from '../types';
 import { logSQL } from '../logger';
+import { generateId } from '../../utils/formatters';
 
 export const SubjectRepository = {
   async getAll(userId?: string): Promise<Subject[]> {
@@ -28,7 +29,7 @@ export const SubjectRepository = {
 
   async create(subject: Omit<Subject, 'id'>, userId?: string): Promise<Subject> {
     const db = await getDatabase();
-    const id = `sub-${Date.now()}`;
+    const id = generateId('sub');
     const targetUserId = userId || subject.userId;
 
     const newSubject: Subject = {

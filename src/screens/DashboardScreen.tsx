@@ -10,37 +10,44 @@ import { useApp } from '../context/AppContext';
 import { theme } from '../theme/theme';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
+import { EmptyState } from '../components/common/EmptyState';
 import { FloatingActionButton } from '../components/common/FloatingActionButton';
 import { Header } from '../components/common/Header';
+import { TaskCard } from '../components/domain/TaskCard';
+import {
+  filterUpcomingAndOverdueTasks,
+  getNextClassForToday,
+} from '../utils/dateUtils';
 
 interface DashboardScreenProps {
   onNavigateToTab: (tabName: string) => void;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTab }) => {
-  const { subjects, tasks, grades, studySessions, toggleTaskStatus, currentUser, logout } = useApp();
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({
+  onNavigateToTab,
+}) => {
+  const {
+    subjects,
+    tasks,
+    studySessions,
+    toggleTaskStatus,
+    getGlobalAverage,
+    currentUser,
+    logout,
+  } = useApp();
 
-  // Próximas tarefas (próximos 7 dias)
   const pendingTasks = tasks.filter((t) => t.status !== 'Concluído');
-  const next7DaysTasks = pendingTasks.slice(0, 4);
+  const next7DaysTasks = filterUpcomingAndOverdueTasks(tasks).slice(0, 5);
 
-  // Total de horas estudadas
-  const totalStudyMinutes = studySessions.reduce((acc, curr) => acc + curr.durationMinutes, 0);
+  const totalStudyMinutes = studySessions.reduce(
+    (acc, curr) => acc + curr.durationMinutes,
+    0
+  );
   const totalHours = (totalStudyMinutes / 60).toFixed(1);
 
-  // Média geral do aluno
-  const allGrades = grades.map((g) => g.grade);
-  const overallAvg =
-    allGrades.length > 0
-      ? (allGrades.reduce((a, b) => a + b, 0) / allGrades.length).toFixed(1)
-      : '0.0';
-
-  const nextClass = subjects[0] ?? {
-    name: 'Nenhuma aula cadastrada',
-    location: '—',
-    schedule: 'Consulte a grade',
-    professor: '—',
-  };
+  const overallAvg = getGlobalAverage().toFixed(1);
+  const { subject: nextClass, badgeLabel: nextClassBadge } =
+    getNextClassForToday(subjects);
 
   return (
     <View style={styles.container}>
@@ -62,18 +69,24 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Banner do Estudante Logado */}
         {currentUser ? (
           <View style={styles.userBanner}>
             <View style={styles.userAvatar}>
               <Text style={styles.userAvatarText}>
-                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '👤'}
+                {currentUser.name
+                  ? currentUser.name.charAt(0).toUpperCase()
+                  : '👤'}
               </Text>
             </View>
             <View style={styles.userInfo}>
               <View style={styles.userNameRow}>
                 <Text style={styles.userName}>{currentUser.name}</Text>
-                <Badge label="Online no SQLite" variant="status" status="Concluído" size="sm" />
+                <Badge
+                  label="Online no SQLite"
+                  variant="status"
+                  status="Concluído"
+                  size="sm"
+                />
               </View>
               <Text style={styles.userSub}>
                 {currentUser.email}
@@ -89,7 +102,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
             </TouchableOpacity>
           </View>
         ) : null}
-        {/* Metric Banner Cards */}
+
         <View style={styles.metricsRow}>
           <TouchableOpacity
             style={[styles.metricCard, { backgroundColor: '#EEF2FF' }]}
@@ -125,7 +138,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           </TouchableOpacity>
         </View>
 
-        {/* Card: Próxima Aula */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>📍 Próxima Aula</Text>
           <TouchableOpacity onPress={() => onNavigateToTab('subjects')}>
@@ -133,20 +145,28 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           </TouchableOpacity>
         </View>
 
-        {subjects.length === 0 ? (
-          <Card>
-            <Text style={styles.emptyText}>
-              📚 Nenhuma matéria cadastrada ainda. Toque em &quot;Ver Todas&quot; para cadastrar sua primeira matéria!
-            </Text>
-          </Card>
+        {!nextClass ? (
+          <EmptyState
+            icon="📚"
+            title="Nenhuma matéria cadastrada"
+            description='Toque em "Ver Todas" para cadastrar suas disciplinas do semestre.'
+            actionLabel="Ir para Matérias"
+            onAction={() => onNavigateToTab('subjects')}
+          />
         ) : (
           <Card highlightColor={nextClass.color || theme.colors.primary}>
             <View style={styles.classHeader}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.className}>{nextClass.name}</Text>
-                <Text style={styles.classProfessor}>Docente: {nextClass.professor}</Text>
+                <Text style={styles.classProfessor}>
+                  Docente: {nextClass.professor}
+                </Text>
               </View>
-              <Badge label="Hoje" color={nextClass.color || theme.colors.primary} variant="subject" />
+              <Badge
+                label={nextClassBadge}
+                color={nextClass.color || theme.colors.primary}
+                variant="subject"
+              />
             </View>
             <View style={styles.classDetails}>
               <View style={styles.detailItem}>
@@ -161,58 +181,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
           </Card>
         )}
 
-        {/* Card: Próximos 7 Dias (Tarefas e Provas) */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📅 Vencimentos nos Próximos 7 Dias</Text>
+          <Text style={styles.sectionTitle}>
+            📅 Vencimentos nos Próximos 7 Dias
+          </Text>
           <TouchableOpacity onPress={() => onNavigateToTab('tasks')}>
             <Text style={styles.sectionLink}>Ver Agenda</Text>
           </TouchableOpacity>
         </View>
 
         {next7DaysTasks.length === 0 ? (
-          <Card>
-            <Text style={styles.emptyText}>🎉 Parabéns! Nenhuma pendência para os próximos dias.</Text>
-          </Card>
+          <EmptyState
+            icon="🎉"
+            title="Sem entregas nos próximos 7 dias"
+            description="Nenhuma tarefa pendente vencendo nos próximos 7 dias ou atrasada."
+          />
         ) : (
-          next7DaysTasks.map((task) => {
-            const subject = subjects.find((s) => s.id === task.subjectId);
-            return (
-              <Card key={task.id} style={styles.taskCard}>
-                <View style={styles.taskTopRow}>
-                  <Badge
-                    label={subject ? subject.name : 'Disciplina'}
-                    color={subject?.color ?? theme.colors.primary}
-                    variant="subject"
-                    size="sm"
-                  />
-                  <Badge
-                    label={task.status}
-                    status={task.status}
-                    variant="status"
-                    size="sm"
-                  />
-                </View>
-                <Text style={styles.taskTitle}>{task.title}</Text>
-                {task.description ? (
-                  <Text style={styles.taskDesc} numberOfLines={2}>
-                    {task.description}
-                  </Text>
-                ) : null}
-                <View style={styles.taskFooter}>
-                  <Text style={styles.taskDueDate}>🗓 Entrega: {task.dueDate}</Text>
-                  <TouchableOpacity
-                    onPress={() => toggleTaskStatus(task.id)}
-                    style={styles.toggleBtn}
-                  >
-                    <Text style={styles.toggleBtnText}>Alterar Status ➔</Text>
-                  </TouchableOpacity>
-                </View>
-              </Card>
-            );
-          })
+          next7DaysTasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              subject={subjects.find((s) => s.id === task.subjectId)}
+              compact
+              onToggleStatus={toggleTaskStatus}
+            />
+          ))
         )}
 
-        {/* Seção de Ações Rápidas */}
         <View style={styles.quickAccessSection}>
           <Text style={styles.sectionTitle}>⚡ Acesso Rápido</Text>
           <View style={styles.quickRow}>
@@ -246,7 +241,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToTa
         </View>
       </ScrollView>
 
-      {/* Botão Flutuante (FAB) do Escopo */}
       <FloatingActionButton
         label="Estudar Agora"
         onPress={() => onNavigateToTab('focus')}
@@ -339,57 +333,6 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 13,
     color: theme.colors.textSecondary,
-  },
-  taskCard: {
-    marginBottom: theme.spacing.sm,
-  },
-  taskTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  taskTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: theme.colors.textPrimary,
-    marginVertical: 2,
-  },
-  taskDesc: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    marginBottom: 6,
-  },
-  taskFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 6,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.surfaceBorder,
-  },
-  taskDueDate: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    fontWeight: '500',
-  },
-  toggleBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: theme.borderRadius.sm,
-    backgroundColor: theme.colors.surfaceSubtle,
-  },
-  toggleBtnText: {
-    fontSize: 12,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    paddingVertical: theme.spacing.md,
   },
   quickAccessSection: {
     marginTop: theme.spacing.md,

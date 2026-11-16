@@ -1,185 +1,67 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
-  AppState as RNAppState,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { theme } from '../theme/theme';
 import { Card } from '../components/common/Card';
 import { Header } from '../components/common/Header';
-import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
-import { ProgressBar } from '../components/common/ProgressBar';
+import { EmptyState } from '../components/common/EmptyState';
+import { ConfirmModal } from '../components/common/ConfirmModal';
+import { PomodoroTimerCard } from '../components/domain/PomodoroTimerCard';
+import { DedicationReportCard } from '../components/domain/DedicationReportCard';
+import { StudySession } from '../types';
+import { getTodayISO, formatDateDisplay } from '../utils/dateUtils';
 
 export const FocusScreen: React.FC = () => {
-  const { subjects, studySessions, addStudySession, getSubjectAverage } = useApp();
+  const {
+    subjects,
+    studySessions,
+    addStudySession,
+    deleteStudySession,
+    getSubjectAverage,
+    pomodoro,
+  } = useApp();
 
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>(
-    subjects[0]?.id ?? ''
+  const [showAllSessions, setShowAllSessions] = useState(false);
+  const [manualNotice, setManualNotice] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<StudySession | null>(
+    null
   );
-  const [timerMode, setTimerMode] = useState<'pomodoro' | 'shortBreak' | 'longBreak'>('pomodoro');
-  
-  // Pomodoro: 25min (1500s), Pausa curta: 5min (300s), Pausa longa: 15min (900s)
-  const getInitialSeconds = (mode: string) => {
-    if (mode === 'pomodoro') return 25 * 60;
-    if (mode === 'shortBreak') return 5 * 60;
-    return 15 * 60;
-  };
 
-  const [secondsLeft, setSecondsLeft] = useState<number>(25 * 60);
-  const [isActive, setIsActive] = useState<boolean>(false);
+  const handleSaveManualSession = async () => {
+    const targetSubject =
+      subjects.find((s) => s.id === pomodoro.selectedSubjectId) || subjects[0];
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const endTimeRef = useRef<number | null>(null);
-
-  const handleTimerComplete = useCallback(() => {
-    endTimeRef.current = null;
-    setIsActive(false);
-    Alert.alert('⏰ Tempo Esgotado!', 'Excelente trabalho! Sessão de foco concluída.');
-    const targetSubject = subjects.find((s) => s.id === selectedSubjectId) || subjects[0];
-    if (timerMode === 'pomodoro') {
-      addStudySession({
-        subjectId: targetSubject?.id ?? '',
-        subjectName: targetSubject?.name ?? 'Estudo Geral',
-        durationMinutes: 25,
-        date: new Date().toISOString().split('T')[0],
-        timestamp: new Date().toISOString(),
-        notes: 'Sessão Pomodoro concluída com sucesso',
-      });
-    }
-  }, [subjects, selectedSubjectId, timerMode, addStudySession]);
-
-  const handleTimerCompleteRef = useRef(handleTimerComplete);
-  useEffect(() => {
-    handleTimerCompleteRef.current = handleTimerComplete;
-  });
-
-  // Temporizador principal com cálculo baseado em timestamp real (previne drift)
-  useEffect(() => {
-    if (!isActive) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      return;
-    }
-
-    timerRef.current = setInterval(() => {
-      if (!endTimeRef.current) return;
-      const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
-      setSecondsLeft(remaining);
-
-      if (remaining <= 0) {
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-        endTimeRef.current = null;
-        setIsActive(false);
-        handleTimerCompleteRef.current();
-      }
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [isActive]);
-
-  // Sincroniza o cronômetro com o relógio do sistema quando o app retorna do segundo plano ou tela bloqueada
-  useEffect(() => {
-    const subscription = RNAppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active' && isActive && endTimeRef.current) {
-        const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
-        setSecondsLeft(remaining);
-
-        if (remaining <= 0) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-          }
-          endTimeRef.current = null;
-          setIsActive(false);
-          handleTimerCompleteRef.current();
-        }
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [isActive]);
-
-  const handleToggleTimer = () => {
-    if (isActive) {
-      // Ao pausar, anula o endTime para congelar a contagem
-      endTimeRef.current = null;
-      setIsActive(false);
-    } else {
-      // Ao iniciar/retomar, calcula o timestamp alvo exato a partir do tempo restante
-      endTimeRef.current = Date.now() + secondsLeft * 1000;
-      setIsActive(true);
-    }
-  };
-
-  const handleReset = () => {
-    endTimeRef.current = null;
-    setIsActive(false);
-    setSecondsLeft(getInitialSeconds(timerMode));
-  };
-
-  const handleChangeMode = (mode: 'pomodoro' | 'shortBreak' | 'longBreak') => {
-    endTimeRef.current = null;
-    setIsActive(false);
-    setTimerMode(mode);
-    setSecondsLeft(getInitialSeconds(mode));
-  };
-
-  const handleSaveManualSession = () => {
-    const targetSubject = subjects.find((s) => s.id === selectedSubjectId) || subjects[0];
-    if (!targetSubject) return;
-
-    addStudySession({
-      subjectId: targetSubject.id,
-      subjectName: targetSubject.name,
+    const subjectName = targetSubject?.name ?? 'Estudo Geral';
+    await addStudySession({
+      subjectId: targetSubject?.id ?? '',
+      subjectName,
       durationMinutes: 30,
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayISO(),
       timestamp: new Date().toISOString(),
       notes: 'Registro manual de 30 minutos de estudo',
     });
 
-    Alert.alert('Sucesso', '30 minutos de estudo registrados no seu histórico!');
+    setManualNotice(
+      `✅ +30 minutos registrados em "${subjectName}" no seu histórico!`
+    );
   };
 
-  // Formatar tempo MM:SS
-  const minutes = Math.floor(secondsLeft / 60);
-  const seconds = secondsLeft % 60;
-  const timeFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const handleConfirmDeleteSession = async () => {
+    if (!sessionToDelete) return;
+    await deleteStudySession(sessionToDelete.id);
+    setSessionToDelete(null);
+  };
 
-  const currentSubject = subjects.find((s) => s.id === selectedSubjectId) || subjects[0];
-
-  // Cálculo de Horas por Matéria para os Relatórios de Produtividade
-  const hoursPerSubject = subjects.map((sub) => {
-    const totalMinutes = studySessions
-      .filter((s) => s.subjectId === sub.id)
-      .reduce((acc, curr) => acc + curr.durationMinutes, 0);
-    const avg = getSubjectAverage(sub.id).average;
-    return {
-      subject: sub,
-      minutes: totalMinutes,
-      hours: (totalMinutes / 60).toFixed(1),
-      avg,
-    };
-  });
-
-  const maxMinutes = Math.max(...hoursPerSubject.map((h) => h.minutes), 60);
+  const visibleSessions = showAllSessions
+    ? studySessions
+    : studySessions.slice(0, 5);
 
   return (
     <View style={styles.container}>
@@ -192,148 +74,103 @@ export const FocusScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* TIMER POMODORO INTERATIVO */}
-        <Card style={styles.timerCard}>
-          {/* Seletor de Modo */}
-          <View style={styles.modeTabs}>
-            <TouchableOpacity
-              style={[styles.modeTab, timerMode === 'pomodoro' && styles.modeTabActive]}
-              onPress={() => handleChangeMode('pomodoro')}
-            >
-              <Text style={[styles.modeTabText, timerMode === 'pomodoro' && styles.modeTabTextActive]}>
-                Foco (25m)
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modeTab, timerMode === 'shortBreak' && styles.modeTabActive]}
-              onPress={() => handleChangeMode('shortBreak')}
-            >
-              <Text style={[styles.modeTabText, timerMode === 'shortBreak' && styles.modeTabTextActive]}>
-                Pausa Curta (5m)
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modeTab, timerMode === 'longBreak' && styles.modeTabActive]}
-              onPress={() => handleChangeMode('longBreak')}
-            >
-              <Text style={[styles.modeTabText, timerMode === 'longBreak' && styles.modeTabTextActive]}>
-                Pausa Longa (15m)
-              </Text>
-            </TouchableOpacity>
-          </View>
+        <PomodoroTimerCard
+          subjects={subjects}
+          selectedSubjectId={pomodoro.selectedSubjectId}
+          onSelectSubject={pomodoro.setSelectedSubjectId}
+          timerMode={pomodoro.timerMode}
+          onChangeMode={pomodoro.changeMode}
+          timeFormatted={pomodoro.timeFormatted}
+          isActive={pomodoro.isActive}
+          onToggleTimer={pomodoro.toggleTimer}
+          onResetTimer={pomodoro.resetTimer}
+          onSaveManualSession={handleSaveManualSession}
+          completionNotice={pomodoro.completionNotice || manualNotice}
+          onDismissNotice={() => {
+            pomodoro.dismissCompletionNotice();
+            setManualNotice(null);
+          }}
+        />
 
-          {/* Seletor de Matéria Vinculada */}
-          <View style={styles.subSelectArea}>
-            <Text style={styles.subSelectLabel}>Matéria em foco:</Text>
-            {subjects.length === 0 ? (
-              <Text style={{ fontSize: 12, color: theme.colors.textMuted, fontStyle: 'italic', marginTop: 4 }}>
-                Nenhuma matéria cadastrada (sessão geral de foco)
-              </Text>
-            ) : (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
-                {subjects.map((sub) => {
-                  const isSelected = (currentSubject?.id ?? '') === sub.id;
-                  return (
-                    <TouchableOpacity
-                      key={sub.id}
-                      style={[
-                        styles.subChip,
-                        isSelected && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
-                      ]}
-                      onPress={() => setSelectedSubjectId(sub.id)}
-                    >
-                      <Text style={[styles.subChipText, isSelected && { color: '#FFF', fontWeight: '700' }]}>
-                        {sub.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            )}
-          </View>
-
-          {/* Relógio Digital */}
-          <View style={styles.clockCircle}>
-            <Text style={styles.clockText}>{timeFormatted}</Text>
-            <Text style={styles.clockSub}>
-              {isActive ? '🔥 Sessão em andamento' : 'Pausado'}
-            </Text>
-          </View>
-
-          {/* Controles de Play / Pause / Reset */}
-          <View style={styles.timerControls}>
-            <Button
-              title={isActive ? 'Pausar' : 'Iniciar Foco'}
-              variant={isActive ? 'secondary' : 'primary'}
-              size="lg"
-              onPress={handleToggleTimer}
-              style={{ flex: 1, marginRight: 8 }}
-            />
-            <Button
-              title="Resetar"
-              variant="outline"
-              size="lg"
-              onPress={handleReset}
-              style={{ flex: 0.7 }}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.manualLogBtn}
-            onPress={handleSaveManualSession}
-          >
-            <Text style={styles.manualLogText}>+ Registrar +30min manualmente</Text>
-          </TouchableOpacity>
-        </Card>
-
-        {/* RELATÓRIOS DE PRODUTIVIDADE E DEDICAÇÃO */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>📈 Relatório de Dedicação Líquida</Text>
-          <Text style={styles.sectionSub}>Horas estudadas conectadas ao rendimento acadêmico</Text>
+          <Text style={styles.sectionSub}>
+            Horas estudadas conectadas ao rendimento acadêmico
+          </Text>
         </View>
 
-        <Card style={styles.reportCard}>
-          {hoursPerSubject.map((item) => {
-            const progress = item.minutes / maxMinutes;
-            return (
-              <View key={item.subject.id} style={styles.statRow}>
-                <View style={styles.statInfo}>
-                  <Text style={styles.statSubject}>{item.subject.name}</Text>
-                  <Text style={styles.statDetails}>
-                    {item.hours}h dedicadas • Média: {item.avg > 0 ? item.avg.toFixed(1) : '—'}
-                  </Text>
-                </View>
+        <DedicationReportCard
+          subjects={subjects}
+          studySessions={studySessions}
+          getSubjectAverage={getSubjectAverage}
+        />
 
-                <View style={styles.statBarContainer}>
-                  <ProgressBar
-                    progress={progress}
-                    color={item.subject.color}
-                    height={10}
+        <View style={styles.historyHeaderRow}>
+          <Text style={styles.sectionTitle}>
+            🕒 Histórico de Estudos ({studySessions.length})
+          </Text>
+          {studySessions.length > 5 ? (
+            <TouchableOpacity
+              onPress={() => setShowAllSessions((prev) => !prev)}
+            >
+              <Text style={styles.toggleHistoryLink}>
+                {showAllSessions
+                  ? 'Mostrar menos'
+                  : `Ver todas (${studySessions.length})`}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {studySessions.length === 0 ? (
+          <EmptyState
+            icon="⏱️"
+            title="Nenhuma sessão registrada"
+            description="Inicie o cronômetro Pomodoro acima ou registre +30min manualmente para acompanhar sua evolução."
+          />
+        ) : (
+          visibleSessions.map((sess) => (
+            <Card key={sess.id} style={styles.sessionCard}>
+              <View style={styles.sessionHeader}>
+                <Text style={styles.sessionSubject}>{sess.subjectName}</Text>
+                <View style={styles.sessionRight}>
+                  <Badge
+                    label={`${sess.durationMinutes} min`}
+                    color={theme.colors.success}
+                    variant="subject"
+                    size="sm"
                   />
+                  <TouchableOpacity
+                    onPress={() => setSessionToDelete(sess)}
+                    style={styles.deleteBtn}
+                  >
+                    <Text style={styles.deleteBtnText}>🗑️</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            );
-          })}
-        </Card>
-
-        {/* HISTÓRICO DE SESSÕES */}
-        <Text style={styles.sectionTitle}>🕒 Histórico Recente de Estudos</Text>
-        {studySessions.slice(0, 5).map((sess) => (
-          <Card key={sess.id} style={styles.sessionCard}>
-            <View style={styles.sessionHeader}>
-              <Text style={styles.sessionSubject}>{sess.subjectName}</Text>
-              <Badge
-                label={`${sess.durationMinutes} min`}
-                color={theme.colors.success}
-                variant="subject"
-                size="sm"
-              />
-            </View>
-            <Text style={styles.sessionDate}>📅 {sess.date}</Text>
-            {sess.notes ? <Text style={styles.sessionNotes}>{sess.notes}</Text> : null}
-          </Card>
-        ))}
+              <Text style={styles.sessionDate}>
+                📅 {formatDateDisplay(sess.date)}
+              </Text>
+              {sess.notes ? (
+                <Text style={styles.sessionNotes}>{sess.notes}</Text>
+              ) : null}
+            </Card>
+          ))
+        )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={!!sessionToDelete}
+        title="Remover Sessão de Estudo"
+        message={
+          sessionToDelete
+            ? `Deseja excluir o registro de ${sessionToDelete.durationMinutes} min em "${sessionToDelete.subjectName}"?`
+            : ''
+        }
+        confirmLabel="Excluir"
+        onConfirm={handleConfirmDeleteSession}
+        onCancel={() => setSessionToDelete(null)}
+      />
     </View>
   );
 };
@@ -347,134 +184,31 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     paddingBottom: 40,
   },
-  timerCard: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.lg,
-  },
-  modeTabs: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surfaceSubtle,
-    borderRadius: theme.borderRadius.full,
-    padding: 3,
-    marginBottom: 12,
-  },
-  modeTab: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: theme.borderRadius.full,
-  },
-  modeTabActive: {
-    backgroundColor: theme.colors.surface,
-    ...theme.shadows.soft,
-  },
-  modeTabText: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    fontWeight: '600',
-  },
-  modeTabTextActive: {
-    color: theme.colors.primary,
-    fontWeight: '700',
-  },
-  subSelectArea: {
-    width: '100%',
-    marginVertical: 6,
-  },
-  subSelectLabel: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  subChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.surfaceSubtle,
-    borderWidth: 1,
-    borderColor: theme.colors.surfaceBorder,
-    marginRight: 6,
-  },
-  subChipText: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-  },
-  clockCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: theme.colors.primaryLight,
-    borderWidth: 4,
-    borderColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 18,
-  },
-  clockText: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: theme.colors.primaryDark,
-    letterSpacing: -1,
-  },
-  clockSub: {
-    fontSize: 12,
-    color: theme.colors.primary,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  timerControls: {
-    flexDirection: 'row',
-    width: '100%',
-    paddingHorizontal: theme.spacing.md,
-    marginTop: 6,
-  },
-  manualLogBtn: {
-    marginTop: 12,
-    paddingVertical: 6,
-  },
-  manualLogText: {
-    fontSize: 13,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
   sectionHeader: {
-    marginTop: theme.spacing.lg,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  historyHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
     marginBottom: theme.spacing.sm,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: theme.colors.textPrimary,
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
   },
   sectionSub: {
     fontSize: 12,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
-  reportCard: {
-    padding: theme.spacing.md,
-  },
-  statRow: {
-    marginVertical: 8,
-  },
-  statInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  statSubject: {
+  toggleHistoryLink: {
     fontSize: 13,
-    fontWeight: '700',
-    color: theme.colors.textPrimary,
-  },
-  statDetails: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-  },
-  statBarContainer: {
-    marginTop: 2,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
   sessionCard: {
     marginBottom: theme.spacing.sm,
@@ -488,6 +222,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: theme.colors.textPrimary,
+    flex: 1,
+    marginRight: 8,
+  },
+  sessionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  deleteBtn: {
+    padding: 4,
+    backgroundColor: theme.colors.surfaceSubtle,
+    borderRadius: theme.borderRadius.sm,
+  },
+  deleteBtnText: {
+    fontSize: 13,
   },
   sessionDate: {
     fontSize: 12,

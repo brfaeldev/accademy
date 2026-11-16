@@ -49,22 +49,6 @@
     <noscript> Você precisa ativar o JavaScript no navegador para executar este aplicativo. </noscript>
     <!-- Elemento raiz montado pelo React Native Web -->
     <div id="root"></div>
-
-    <!-- Registro automático do Service Worker PWA -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker
-            .register('/sw.js', { scope: '/' })
-            .then(function (registration) {
-              console.log('[PWA] Service Worker registrado com sucesso no escopo:', registration.scope);
-            })
-            .catch(function (error) {
-              console.warn('[PWA] Falha ao registrar Service Worker:', error);
-            });
-        });
-      }
-    </script>
   </body>
 </html>
 

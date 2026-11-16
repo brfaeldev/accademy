@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Subject, Task, GradeItem, StudySession, TaskStatus, User } from '../types';
 import {
@@ -10,6 +17,16 @@ import {
   StudySessionRepository,
   UserRepository,
 } from '../database';
+import {
+  calculateSubjectAverage,
+  calculateNeededForFinalExam,
+  calculateGlobalAverage,
+  SubjectAverageResult,
+} from '../utils/gradeCalculations';
+import {
+  usePomodoroTimer,
+  PomodoroTimerController,
+} from '../hooks/usePomodoroTimer';
 
 const AUTH_SESSION_KEY = '@academy_logged_user_id';
 
@@ -51,10 +68,17 @@ interface AppContextData {
 
   // Foco / Pomodoro
   addStudySession: (session: Omit<StudySession, 'id'>) => Promise<void>;
+  deleteStudySession: (id: string) => Promise<void>;
+  pomodoro: PomodoroTimerController;
 
   // Métricas e Cálculos
-  getSubjectAverage: (subjectId: string) => { average: number; totalWeight: number; passing: boolean };
-  calculateNeededGrade: (subjectId: string, finalExamWeight?: number, targetGrade?: number) => number;
+  getSubjectAverage: (subjectId: string) => SubjectAverageResult;
+  getGlobalAverage: () => number;
+  calculateNeededGrade: (
+    subjectId: string,
+    finalExamWeight?: number,
+    targetGrade?: number
+  ) => number;
   resetAllData: () => Promise<void>;
 }
 
@@ -69,23 +93,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [availableAccounts, setAvailableAccounts] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const refreshAccounts = async () => {
+  const refreshAccounts = useCallback(async () => {
     try {
       const users = await UserRepository.getAll();
       setAvailableAccounts(users);
     } catch (error) {
       console.error('Erro ao listar contas do banco SQLite:', error);
     }
-  };
+  }, []);
 
-  const loadUserData = async (userId: string) => {
+  const loadUserData = useCallback(async (userId: string) => {
     try {
-      const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] = await Promise.all([
-        SubjectRepository.getAll(userId),
-        TaskRepository.getAll(userId),
-        GradeRepository.getAll(userId),
-        StudySessionRepository.getAll(userId),
-      ]);
+      const [loadedSubjects, loadedTasks, loadedGrades, loadedSessions] =
+        await Promise.all([
+          SubjectRepository.getAll(userId),
+          TaskRepository.getAll(userId),
+          GradeRepository.getAll(userId),
+          StudySessionRepository.getAll(userId),
+        ]);
       setSubjects(loadedSubjects);
       setTasks(loadedTasks);
       setGrades(loadedGrades);
@@ -93,7 +118,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (error) {
       console.error('Erro ao carregar dados do usuário:', error);
     }
-  };
+  }, []);
 
   // Inicializa o banco SQLite, executa migrações/limpeza e restaura sessão se houver
   useEffect(() => {
@@ -103,7 +128,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const loadedUsers = await UserRepository.getAll();
         setAvailableAccounts(loadedUsers);
 
-        // Restaura a sessão do usuário caso exista no AsyncStorage
         try {
           const savedUserId = await AsyncStorage.getItem(AUTH_SESSION_KEY);
           if (savedUserId) {
@@ -137,7 +161,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     }
     load();
-  }, []);
+  }, [loadUserData]);
 
   // --- Autenticação e Gestão de Contas ---
   const login = async (
@@ -146,10 +170,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!email.trim() || !password) {
-        return { success: false, error: 'Preencha o e-mail e a senha para entrar.' };
+        return {
+          success: false,
+          error: 'Preencha o e-mail e a senha para entrar.',
+        };
       }
 
-      // Validação no banco de dados SQLite
       const user = await UserRepository.authenticate(email, password);
       setCurrentUser(user);
       await AsyncStorage.setItem(AUTH_SESSION_KEY, user.id);
@@ -176,13 +202,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return { success: false, error: 'O nome completo é obrigatório.' };
       }
       if (!data.email.trim() || !data.email.includes('@')) {
-        return { success: false, error: 'Insira um endereço de e-mail válido.' };
+        return {
+          success: false,
+          error: 'Insira um endereço de e-mail válido.',
+        };
       }
       if (!data.password || data.password.length < 3) {
-        return { success: false, error: 'A senha deve possuir pelo menos 3 caracteres.' };
+        return {
+          success: false,
+          error: 'A senha deve possuir pelo menos 3 caracteres.',
+        };
       }
 
-      // Criação da conta no SQLite
       const newUser = await UserRepository.create({
         name: data.name,
         email: data.email,
@@ -191,7 +222,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       });
 
       setCurrentUser(newUser);
-      // Conta criada começa 100% limpa, sem nenhum mock ou dados imputados
       setSubjects([]);
       setTasks([]);
       setGrades([]);
@@ -235,7 +265,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateSubject = async (subject: Subject) => {
     try {
       await SubjectRepository.update(subject);
-      setSubjects((prev) => prev.map((s) => (s.id === subject.id ? subject : s)));
+      setSubjects((prev) =>
+        prev.map((s) => (s.id === subject.id ? subject : s))
+      );
     } catch (error) {
       console.error('Erro ao atualizar disciplina:', error);
     }
@@ -244,10 +276,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteSubject = async (id: string) => {
     try {
       await SubjectRepository.delete(id);
-      // Chaves estrangeiras ON DELETE CASCADE removem do SQLite, sincronizamos o estado React
+      // Sincroniza estado em memória com ON DELETE CASCADE (tasks, grades) e ON DELETE SET NULL (study_sessions)
       setSubjects((prev) => prev.filter((s) => s.id !== id));
       setTasks((prev) => prev.filter((t) => t.subjectId !== id));
       setGrades((prev) => prev.filter((g) => g.subjectId !== id));
+      setStudySessions((prev) =>
+        prev.map((sess) =>
+          sess.subjectId === id ? { ...sess, subjectId: '' } : sess
+        )
+      );
     } catch (error) {
       console.error('Erro ao excluir disciplina:', error);
     }
@@ -257,7 +294,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addTask = async (task: Omit<Task, 'id'>) => {
     try {
       const newTask = await TaskRepository.create(task);
-      setTasks((prev) => [newTask, ...prev]);
+      setTasks((prev) =>
+        [...prev, newTask].sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+      );
     } catch (error) {
       console.error('Erro ao adicionar tarefa:', error);
     }
@@ -266,7 +305,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateTask = async (task: Task) => {
     try {
       await TaskRepository.update(task);
-      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+      setTasks((prev) =>
+        prev
+          .map((t) => (t.id === task.id ? task : t))
+          .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+      );
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
     }
@@ -286,16 +329,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const current = tasks.find((t) => t.id === id);
     if (!current) return;
 
-    const nextIdx = (order.indexOf(current.status) + 1) % order.length;
+    const previousStatus = current.status;
+    const nextIdx = (order.indexOf(previousStatus) + 1) % order.length;
     const nextStatus = order[nextIdx];
 
-    // Atualização otimista
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: nextStatus } : t)));
+    // Atualização otimista com rollback em caso de falha no banco
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, status: nextStatus } : t))
+    );
 
     try {
       await TaskRepository.toggleStatus(id);
     } catch (error) {
       console.error('Erro ao alternar status da tarefa no SQLite:', error);
+      // Reverte atualização otimista se o SQLite falhar
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, status: previousStatus } : t))
+      );
     }
   };
 
@@ -312,7 +362,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateGrade = async (grade: GradeItem) => {
     try {
       await GradeRepository.update(grade);
-      setGrades((prev) => prev.map((g) => (g.id === grade.id ? grade : g)));
+      setGrades((prev) =>
+        prev.map((g) => (g.id === grade.id ? grade : g))
+      );
     } catch (error) {
       console.error('Erro ao atualizar nota:', error);
     }
@@ -328,48 +380,65 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // --- Sessões de Estudo ---
-  const addStudySession = async (session: Omit<StudySession, 'id'>) => {
+  const addStudySession = useCallback(
+    async (session: Omit<StudySession, 'id'>) => {
+      try {
+        const newSession = await StudySessionRepository.create(
+          session,
+          currentUser?.id
+        );
+        setStudySessions((prev) => [newSession, ...prev]);
+      } catch (error) {
+        console.error('Erro ao adicionar sessão de estudo:', error);
+      }
+    },
+    [currentUser]
+  );
+
+  const deleteStudySession = useCallback(async (id: string) => {
     try {
-      const newSession = await StudySessionRepository.create(session, currentUser?.id);
-      setStudySessions((prev) => [newSession, ...prev]);
+      await StudySessionRepository.delete(id);
+      setStudySessions((prev) => prev.filter((s) => s.id !== id));
     } catch (error) {
-      console.error('Erro ao adicionar sessão de estudo:', error);
+      console.error('Erro ao excluir sessão de estudo:', error);
     }
-  };
+  }, []);
+
+  // Cronômetro Pomodoro elevado ao contexto global para não perder estado ao trocar de aba
+  const pomodoro = usePomodoroTimer({
+    subjects,
+    onCompleteSession: addStudySession,
+  });
 
   // --- Cálculos e Simulador de Notas ---
-  const getSubjectAverage = (subjectId: string) => {
-    const items = grades.filter((g) => g.subjectId === subjectId);
-    if (items.length === 0) return { average: 0, totalWeight: 0, passing: false };
+  const getSubjectAverage = useCallback(
+    (subjectId: string): SubjectAverageResult => {
+      const subject = subjects.find((s) => s.id === subjectId);
+      const target = subject?.targetGrade ?? 7.0;
+      return calculateSubjectAverage(grades, subjectId, target);
+    },
+    [grades, subjects]
+  );
 
-    const totalWeight = items.reduce((acc, curr) => acc + curr.weight, 0);
-    const weightedSum = items.reduce((acc, curr) => acc + curr.grade * curr.weight, 0);
-    const average = totalWeight > 0 ? Number((weightedSum / totalWeight).toFixed(2)) : 0;
+  const getGlobalAverage = useCallback((): number => {
+    return calculateGlobalAverage(subjects, grades);
+  }, [subjects, grades]);
 
-    const subject = subjects.find((s) => s.id === subjectId);
-    const target = subject?.targetGrade ?? 7.0;
-
-    return {
-      average,
-      totalWeight,
-      passing: average >= target,
-    };
-  };
-
-  const calculateNeededGrade = (
-    subjectId: string,
-    finalExamWeight: number = 4.0,
-    targetGrade: number = 7.0
-  ): number => {
-    const { average, totalWeight } = getSubjectAverage(subjectId);
-    if (totalWeight === 0) return targetGrade;
-
-    const requiredTotal = targetGrade * (totalWeight + finalExamWeight);
-    const currentPoints = average * totalWeight;
-    const needed = (requiredTotal - currentPoints) / finalExamWeight;
-
-    return Math.max(0, Number(needed.toFixed(2)));
-  };
+  const calculateNeededGrade = useCallback(
+    (
+      subjectId: string,
+      finalExamWeight: number = 4.0,
+      targetGrade: number = 7.0
+    ): number => {
+      return calculateNeededForFinalExam(
+        grades,
+        subjectId,
+        finalExamWeight,
+        targetGrade
+      );
+    },
+    [grades]
+  );
 
   const resetAllData = async () => {
     try {
@@ -414,7 +483,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateGrade,
         deleteGrade,
         addStudySession,
+        deleteStudySession,
+        pomodoro,
         getSubjectAverage,
+        getGlobalAverage,
         calculateNeededGrade,
         resetAllData,
       }}
@@ -425,3 +497,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 };
 
 export const useApp = () => useContext(AppContext);
+export const useAuth = () => {
+  const { currentUser, availableAccounts, login, register, logout, refreshAccounts } =
+    useContext(AppContext);
+  return { currentUser, availableAccounts, login, register, logout, refreshAccounts };
+};

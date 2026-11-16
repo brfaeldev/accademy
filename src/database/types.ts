@@ -47,7 +47,7 @@ export interface UserRow {
   id: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
   course: string | null;
   created_at: string;
 }
@@ -108,7 +108,6 @@ export function mapUserFromRow(row: UserRow): User {
     id: row.id,
     name: row.name,
     email: row.email,
-    password: row.password,
     course: row.course ?? undefined,
     createdAt: row.created_at,
   };

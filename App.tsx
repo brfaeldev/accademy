@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   View,
   ActivityIndicator,
   StatusBar as RNStatusBar,
   Platform,
+  BackHandler,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AppProvider, useApp } from './src/context/AppContext';
 import { theme } from './src/theme/theme';
 import { TabBar, TabItem } from './src/components/navigation/TabBar';
 
-// As 5 telas do MVP
+// As 6 telas da aplicação
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { SubjectsScreen } from './src/screens/SubjectsScreen';
 import { TasksScreen } from './src/screens/TasksScreen';
@@ -20,9 +20,58 @@ import { GradesScreen } from './src/screens/GradesScreen';
 import { FocusScreen } from './src/screens/FocusScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 
+const VALID_TABS = ['dashboard', 'subjects', 'tasks', 'grades', 'focus'];
+
+function getInitialWebTab(): string {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const hash = window.location.hash.replace('#', '').trim();
+    if (VALID_TABS.includes(hash)) {
+      return hash;
+    }
+  }
+  return 'dashboard';
+}
+
 const MainNavigator: React.FC = () => {
-  const { isLoading, tasks, currentUser } = useApp();
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const { isLoading, tasks, currentUser, pomodoro } = useApp();
+  const [activeTab, setActiveTab] = useState<string>(getInitialWebTab);
+
+  const navigateToTab = useCallback((tabId: string) => {
+    setActiveTab(tabId);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${tabId}`);
+    }
+  }, []);
+
+  // Suporte ao botão físico "Voltar" do Android: retorna ao Dashboard antes de fechar o app
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (activeTab !== 'dashboard') {
+        navigateToTab('dashboard');
+        return true;
+      }
+      return false;
+    });
+
+    return () => subscription.remove();
+  }, [activeTab, navigateToTab]);
+
+  // Suporte à mudança de hash (botão voltar do navegador) na Web
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '').trim();
+      if (VALID_TABS.includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   if (isLoading) {
     return (
@@ -44,7 +93,11 @@ const MainNavigator: React.FC = () => {
     { id: 'subjects', label: 'Matérias', icon: '📚' },
     { id: 'tasks', label: 'Agenda', icon: '📋', badgeCount: pendingCount },
     { id: 'grades', label: 'Boletim', icon: '📊' },
-    { id: 'focus', label: 'Foco', icon: '⏱' },
+    {
+      id: 'focus',
+      label: pomodoro.isActive ? `Foco (${pomodoro.timeFormatted})` : 'Foco',
+      icon: pomodoro.isActive ? '🔥' : '⏱',
+    },
   ];
 
   const renderScreen = () => {
@@ -59,7 +112,7 @@ const MainNavigator: React.FC = () => {
         return <FocusScreen />;
       case 'dashboard':
       default:
-        return <DashboardScreen onNavigateToTab={(tab) => setActiveTab(tab)} />;
+        return <DashboardScreen onNavigateToTab={navigateToTab} />;
     }
   };
 
@@ -69,7 +122,7 @@ const MainNavigator: React.FC = () => {
       <TabBar
         tabs={tabs}
         activeTab={activeTab}
-        onSelectTab={(tabId) => setActiveTab(tabId)}
+        onSelectTab={navigateToTab}
       />
     </View>
   );
@@ -77,12 +130,12 @@ const MainNavigator: React.FC = () => {
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar style="dark" />
       <AppProvider>
         <MainNavigator />
       </AppProvider>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -90,7 +143,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.surface,
-    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight ?? 0 : 0,
   },
   mainContainer: {
     flex: 1,

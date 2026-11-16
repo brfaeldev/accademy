@@ -12,10 +12,19 @@ interface BadgeProps {
   size?: 'sm' | 'md';
 }
 
+const TASK_TYPE_BADGE_INDEX: Record<TaskType, number> = {
+  Prova: 0,
+  Seminário: 1,
+  Lista: 2,
+  Trabalho: 3,
+  Outro: 4,
+};
+
 export const Badge: React.FC<BadgeProps> = ({
   label,
   variant = 'neutral',
   status,
+  type,
   color,
   size = 'md',
 }) => {
@@ -41,6 +50,12 @@ export const Badge: React.FC<BadgeProps> = ({
         borderColor = '#FECACA';
         break;
     }
+  } else if (variant === 'type' && type) {
+    const idx = TASK_TYPE_BADGE_INDEX[type] ?? 5;
+    const paletteItem = theme.colors.subjectBadges[idx] ?? theme.colors.subjectBadges[0];
+    backgroundColor = paletteItem.bg;
+    textColor = paletteItem.text;
+    borderColor = paletteItem.border;
   } else if (variant === 'subject' && color) {
     backgroundColor = `${color}18`;
     textColor = color;

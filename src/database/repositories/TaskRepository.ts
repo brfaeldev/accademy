@@ -2,6 +2,7 @@ import { getDatabase } from '../database';
 import { Task, TaskStatus } from '../../types';
 import { TaskRow, mapTaskFromRow } from '../types';
 import { logSQL } from '../logger';
+import { generateId } from '../../utils/formatters';
 
 export const TaskRepository = {
   async getAll(userId?: string): Promise<Task[]> {
@@ -40,7 +41,7 @@ export const TaskRepository = {
 
   async create(task: Omit<Task, 'id'>): Promise<Task> {
     const db = await getDatabase();
-    const id = `task-${Date.now()}`;
+    const id = generateId('task');
     const newTask: Task = {
       ...task,
       id,

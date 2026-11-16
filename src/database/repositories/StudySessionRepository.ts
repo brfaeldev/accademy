@@ -2,6 +2,7 @@ import { getDatabase } from '../database';
 import { StudySession } from '../../types';
 import { StudySessionRow, mapStudySessionFromRow } from '../types';
 import { logSQL } from '../logger';
+import { generateId } from '../../utils/formatters';
 
 export const StudySessionRepository = {
   async getAll(userId?: string): Promise<StudySession[]> {
@@ -29,7 +30,7 @@ export const StudySessionRepository = {
 
   async create(session: Omit<StudySession, 'id'>, userId?: string): Promise<StudySession> {
     const db = await getDatabase();
-    const id = `sess-${Date.now()}`;
+    const id = generateId('sess');
     const targetUserId = userId || session.userId;
 
     const newSession: StudySession = {

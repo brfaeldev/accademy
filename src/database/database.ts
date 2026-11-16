@@ -71,7 +71,7 @@ async function ensureColumnExists(
       await db.execAsync(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDef};`);
       logSQL('MIGRATION', `Coluna "${columnName}" adicionada com sucesso à tabela "${tableName}".`);
     }
-  } catch (err) {
+  } catch {
     try {
       await db.execAsync(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDef};`);
     } catch {
@@ -239,8 +239,12 @@ export function downloadDatabaseFile(): void {
   }
 }
 
-// Expõe comandos globais no console do navegador (F12)
-if (Platform.OS === 'web' && typeof window !== 'undefined') {
+// Expõe comandos globais no console do navegador (F12) apenas em ambiente de desenvolvimento
+if (
+  (typeof __DEV__ === 'undefined' || __DEV__) &&
+  Platform.OS === 'web' &&
+  typeof window !== 'undefined'
+) {
   const w = window as unknown as Record<string, unknown>;
   w.debugSQLite = async () => {
     await showDatabaseStructure();

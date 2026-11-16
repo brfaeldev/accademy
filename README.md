@@ -34,34 +34,39 @@ O **Controle de Estudos** resolve esse problema reunindo em uma única interface
 
 ## 🚀 Telas e Funcionalidades Desenvolvidas (MVP)
 
-O aplicativo conta com **5 telas completas e navegáveis**:
+O aplicativo conta com **6 telas completas e navegáveis**:
 
-1. **Dashboard (Tela Inicial):**
-   * Resumo diário do estudante com data e boas-vindas contextuais;
-   * Cards rápidos com dados da próxima aula (local, sala/bloco, horários e professor);
-   * Lista de tarefas e provas dos próximos 7 dias com alertas visuais de prazo;
+1. **Autenticação e Multiusuário (`AuthScreen`):**
+   * Cadastro e login de estudantes com isolamento de dados por usuário (`user_id`);
+   * Senhas armazenadas com hash criptográfico **SHA-256** no SQLite e persistência de sessão via `AsyncStorage`.
+
+2. **Dashboard (Tela Inicial):**
+   * Resumo diário do estudante com banner de perfil e boas-vindas contextuais;
+   * Card dinâmico da próxima aula com correspondência automática pelo dia da semana;
+   * Lista real de tarefas e provas dos próximos 7 dias (e alertas de atraso);
+   * Cálculo da **Média Global** ponderada entre as disciplinas cursadas;
    * **Botão Flutuante (FAB)** para iniciar rapidamente o cronômetro de estudos.
 
-2. **Gestão Acadêmica (Disciplinas e Contatos):**
-   * Lista de matérias do semestre atual com etiquetas e cores personalizadas;
+3. **Gestão Acadêmica (Disciplinas e Contatos):**
+   * Lista de matérias do semestre atual (`FlatList`) com etiquetas, cores personalizadas e **meta de aprovação configurável** (`targetGrade`);
    * Detalhes de docentes responsáveis, e-mail institucional e localização física/remota das aulas;
-   * **CRUD Completo:** Criação, edição e exclusão de matérias com confirmação segura.
+   * **CRUD Completo:** Criação, edição e exclusão de matérias com modal de confirmação multiplataforma (`ConfirmModal`).
 
-3. **Agenda e Prazos (Controle de Tarefas):**
+4. **Agenda e Prazos (Controle de Tarefas):**
    * Visualização com filtros por status: `Pendente`, `Em Andamento` e `Concluído`;
-   * Cards com tipo de atividade (Prova, Trabalho, Lista, Seminário), pesos acadêmicos e datas de entrega;
-   * **CRUD Completo:** Cadastro de novas avaliações e alternância rápida de status em 1 toque.
+   * Cards unificados (`TaskCard`) com tipo de atividade (Prova, Trabalho, Lista, Seminário), pesos acadêmicos e validação/formatação de datas (`DD/MM/AAAA`);
+   * **CRUD Completo:** Cadastro, edição, exclusão e alternância rápida de status em 1 toque com rollback seguro.
 
-4. **Boletim e Simulador de Notas:**
+5. **Boletim e Simulador de Notas:**
    * Barras de progresso visuais com percentual da média atingida em cada disciplina;
-   * **Calculadora Dinâmica Interativa:** Simula automaticamente *"Quanto preciso tirar na Prova Final para passar com média 7.0?"* baseado nas notas e pesos atuais;
-   * Lançamento de notas parciais com pesos ponderados customizáveis.
+   * **Calculadora Dinâmica Interativa:** Simula automaticamente *"Quanto preciso tirar na Prova Final para passar?"* baseado nas notas, pesos e meta da disciplina;
+   * **CRUD Completo de Notas:** Lançamento, edição e exclusão de notas parciais com suporte a separador decimal com vírgula ou ponto.
 
-5. **Central de Foco (Tempo de Estudo):**
-   * Cronômetro interativo com modo **Pomodoro (25m Foco / 5m Pausa Curta / 15m Pausa Longa)** com controles de Play, Pause e Reset;
+6. **Central de Foco (Tempo de Estudo):**
+   * Cronômetro interativo com modo **Pomodoro (25m Foco / 5m Pausa Curta / 15m Pausa Longa)** elevado ao contexto global (continua rodando ao alternar entre abas e sincroniza em background via `AppState`);
    * Vinculação da sessão à disciplina estudada para rastreamento de esforço;
    * **Relatórios de Produtividade:** Barras de horas líquidas dedicadas por disciplina cruzadas com o rendimento acadêmico;
-   * Histórico detalhado de sessões de estudo realizadas.
+   * Histórico completo e expansível de sessões de estudo realizadas, com suporte a exclusão de registros.
 
 ---
 
@@ -73,10 +78,11 @@ O aplicativo utiliza banco de dados **SQLite relacional local** gerenciado via b
 
 | Tabela | Colunas Principais | Relacionamentos e Regras |
 | :--- | :--- | :--- |
-| **`subjects`** | `id` (PK), `name`, `code`, `professor`, `professor_email`, `location`, `schedule`, `color`, `target_grade` | Tabela mãe de matérias do semestre acadêmico. |
+| **`users`** | `id` (PK), `name`, `email` (UNIQUE), `password` (SHA-256), `course`, `created_at` | Tabela de contas locais de estudantes com índice único em `email`. |
+| **`subjects`** | `id` (PK), `user_id` (FK), `name`, `code`, `professor`, `professor_email`, `location`, `schedule`, `color`, `target_grade` | `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`. Tabela mãe de matérias do semestre acadêmico. |
 | **`tasks`** | `id` (PK), `subject_id` (FK), `title`, `description`, `type`, `due_date`, `weight`, `status` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE`. Índices em `subject_id` e `due_date`. |
 | **`grades`** | `id` (PK), `subject_id` (FK), `name`, `grade`, `weight` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE`. Índice em `subject_id`. |
-| **`study_sessions`** | `id` (PK), `subject_id` (FK), `subject_name`, `duration_minutes`, `timestamp`, `date`, `notes` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL`. Índice em `date`. |
+| **`study_sessions`** | `id` (PK), `user_id` (FK), `subject_id` (FK), `subject_name`, `duration_minutes`, `timestamp`, `date`, `notes` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL`. Índices em `user_id` e `date`. |
 
 ```sql
 -- Exemplo DDL da integridade e índices relacionais
@@ -148,39 +154,41 @@ O projeto foi estruturado seguindo as melhores práticas de mercado (arquitetura
 academy/
 ├── assets/                 # Ícones, splash screen e identidade visual do app
 ├── docs/                   # Documentação da disciplina, PDFs e roteiros de apresentação
-├── public/                 # Recursos estáticos e manifesto para suporte Web/PWA
+├── public/                 # Recursos estáticos, manifesto e Service Worker para suporte Web/PWA
 ├── src/
 │   ├── components/         # Componentes modulares da interface
-│   │   ├── common/         # Componentes visuais reutilizáveis (Badge, Button, Card, Header, ProgressBar, Modal, FAB)
+│   │   ├── common/         # Componentes atômicos e moléculas reutilizáveis (Badge, Button, Card, ChipSelector, ConfirmModal, EmptyState, FloatingActionButton, FormField, Header, ModalWrapper, ProgressBar, SubjectSelector)
+│   │   ├── domain/         # Componentes de domínio (DedicationReportCard, FinalExamSimulatorCard, GradeFormModal, LoginForm, PomodoroTimerCard, RegisterForm, SavedAccountsList, SubjectCard, SubjectFormModal, SubjectGradeCard, TaskCard, TaskFormModal)
 │   │   └── navigation/     # Componentes de navegação (TabBar inferior customizada)
 │   ├── context/            # Gerenciamento de estado global com React Context API (AppContext)
 │   ├── database/           # Camada de banco de dados SQLite relacional (expo-sqlite)
-│   │   ├── database.ts     # Conexão singleton e controle de transações/chaves estrangeiras
-│   │   ├── logger.ts       # Utilitário de auditoria e log colorido/formatado de queries SQL
+│   │   ├── database.ts     # Conexão singleton, migrações e controle de chaves estrangeiras
+│   │   ├── logger.ts       # Utilitário de auditoria de queries SQL (restrito a __DEV__)
 │   │   ├── schema.ts       # DDL das tabelas relacionais, foreign keys com CASCADE e índices
-│   │   ├── seed.ts         # Carga inicial com dados acadêmicos caso o banco esteja vazio
+│   │   ├── seed.ts         # Utilitários de limpeza e reinicialização do banco
 │   │   ├── types.ts        # Tipagens específicas da camada SQLite e mapeadores Row <-> Entidade
 │   │   ├── index.ts        # Ponto de exportação unificado da camada de dados
 │   │   └── repositories/   # Repositórios especializados (Repository Pattern)
+│   │       ├── UserRepository.ts          # Autenticação com hash SHA-256 e gestão de contas
 │   │       ├── SubjectRepository.ts       # CRUD e consultas de matérias/disciplinas
 │   │       ├── TaskRepository.ts          # CRUD, ordenação e filtros de tarefas/provas
-│   │       ├── GradeRepository.ts         # Lançamento de notas parciais e cálculo de médias
-│   │       └── StudySessionRepository.ts  # Registro e relatórios de sessões Pomodoro
-│   ├── screens/            # As 5 telas navegáveis do MVP
-│   │   ├── DashboardScreen.tsx  # Visão geral diária, próximas aulas, prazos e atalho FAB
-│   │   ├── SubjectsScreen.tsx   # Gestão de matérias, cores, docentes e salas
+│   │       ├── GradeRepository.ts         # CRUD de notas parciais por disciplina
+│   │       └── StudySessionRepository.ts  # Registro e histórico de sessões Pomodoro
+│   ├── hooks/              # Custom Hooks (usePomodoroTimer)
+│   ├── screens/            # As 6 telas orquestradoras da aplicação
+│   │   ├── AuthScreen.tsx       # Login e cadastro multiusuário local
+│   │   ├── DashboardScreen.tsx  # Visão geral diária, próxima aula dinâmica, prazos e FAB
+│   │   ├── SubjectsScreen.tsx   # Gestão de matérias, cores, metas, docentes e salas
 │   │   ├── TasksScreen.tsx      # Agenda de tarefas e provas com filtros de status
 │   │   ├── GradesScreen.tsx     # Boletim acadêmico e simulador de nota para prova final
 │   │   └── FocusScreen.tsx      # Cronômetro Pomodoro e métricas de dedicação líquida
-│   ├── services/           # Serviços de dados auxiliares e persistência
-│   │   ├── mockData.ts     # Massa de dados padrão para seed do banco e testes
-│   │   └── storage.ts      # Armazenamento e fallback em cache / AsyncStorage
 │   ├── theme/              # Design System (tokens de cores, tipografia, espaçamentos e sombras)
-│   └── types/              # Definições de tipos, contratos e interfaces TypeScript
+│   ├── types/              # Definições de tipos, contratos e interfaces TypeScript
+│   └── utils/              # Funções puras (crypto, dateUtils, formatters, gradeCalculations)
 ├── App.tsx                 # Entrada e orquestrador principal de contexto e navegação
 ├── app.json                # Configurações do Expo (identificadores, splash, orientação e tema)
-├── index.ts                # Ponto de inicialização do Expo (registerRootComponent)
-├── metro.config.js         # Configurações do empacotador Metro
+├── index.ts                # Ponto de inicialização do Expo e registro do Service Worker PWA
+├── metro.config.js         # Configurações do empacotador Metro e cabeçalhos COOP/COEP
 ├── package.json            # Dependências, scripts e metadados do projeto
 └── tsconfig.json           # Configurações de compilação do TypeScript
 ```
@@ -251,8 +259,8 @@ academy/
   ```bash
   npx expo start -c
   ```
-* **Carga de Dados Automática (Seed):**  
-  Na primeira inicialização, o banco de dados relacional SQLite (`academy.db`) é criado e populado automaticamente com matérias, tarefas, avaliações e sessões de estudo simuladas, permitindo testar todas as telas e cálculos de aprovação imediatamente.
+* **Inicialização Limpa por Estudante:**  
+  Na primeira inicialização, o banco de dados relacional SQLite (`academy.db`) cria automaticamente todas as tabelas e índices. Cada conta criada pelo estudante inicia 100% limpa e isolada, sem dados fictícios pré-imputados.
 
 ---
 
