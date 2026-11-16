@@ -14,7 +14,6 @@ export const theme = {
     textPrimary: '#0F172A', // Slate 900
     textSecondary: '#475569', // Slate 600
     textMuted: '#94A3B8', // Slate 400
-    textOnPrimary: '#FFFFFF',
 
     success: '#10B981', // Emerald 500
     successLight: '#ECFDF5',
@@ -27,10 +26,6 @@ export const theme = {
     danger: '#EF4444', // Red 500
     dangerLight: '#FEF2F2',
     dangerText: '#B91C1C',
-
-    info: '#0284C7', // Sky 600
-    infoLight: '#F0F9FF',
-    infoText: '#0369A1',
 
     // Cores para tags de matérias
     subjectBadges: [

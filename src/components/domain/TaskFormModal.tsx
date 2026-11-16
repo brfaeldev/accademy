@@ -13,6 +13,7 @@ import {
   addDaysISO,
   normalizeDateInput,
   formatDateDisplay,
+  formatDateMask,
 } from '../../utils/dateUtils';
 
 interface TaskFormModalProps {
@@ -162,7 +163,7 @@ const TaskFormContent: React.FC<Omit<TaskFormModalProps, 'visible'>> = ({
           placeholder="DD/MM/AAAA"
           value={dueDate}
           onChangeText={(t) => {
-            setDueDate(t);
+            setDueDate(formatDateMask(t));
             if (errorMsg) setErrorMsg(null);
           }}
           containerStyle={{ flex: 1.2, marginRight: 8 }}

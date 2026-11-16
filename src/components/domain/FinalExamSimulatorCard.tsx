@@ -27,19 +27,17 @@ export const FinalExamSimulatorCard: React.FC<FinalExamSimulatorCardProps> = ({
     subjects[0]?.id ?? ''
   );
   const [simulatedWeight, setSimulatedWeight] = useState<string>('4.0');
-  const [simulatedTarget, setSimulatedTarget] = useState<string>(
-    String(subjects[0]?.targetGrade ?? 7.0)
-  );
+  const [customTarget, setCustomTarget] = useState<string | null>(null);
 
   const currentSubject =
     subjects.find((s) => s.id === selectedSubjectId) ?? subjects[0];
 
+  const simulatedTarget =
+    customTarget ?? String(currentSubject?.targetGrade ?? 7.0);
+
   const handleSelectSubject = (subId: string) => {
     setSelectedSubjectId(subId);
-    const chosen = subjects.find((s) => s.id === subId);
-    if (chosen) {
-      setSimulatedTarget(String(chosen.targetGrade ?? 7.0));
-    }
+    setCustomTarget(null);
   };
 
   const currentCalc = currentSubject
@@ -86,7 +84,7 @@ export const FinalExamSimulatorCard: React.FC<FinalExamSimulatorCardProps> = ({
           label="Média Desejada"
           keyboardType="decimal-pad"
           value={simulatedTarget}
-          onChangeText={setSimulatedTarget}
+          onChangeText={setCustomTarget}
           containerStyle={{ flex: 1, marginTop: 4 }}
         />
       </View>

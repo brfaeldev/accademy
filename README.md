@@ -1,289 +1,123 @@
 # 📱 Controle de Estudos — Academy App
 
-![React Native](https://img.shields.io/badge/React_Native-0.88-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Expo](https://img.shields.io/badge/Expo-SDK_58-000020?style=for-the-badge&logo=expo&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-expo--sqlite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Plataformas](https://img.shields.io/badge/Plataformas-Android_|_iOS_|_Web-4F46E5?style=for-the-badge)
+Aplicativo multiplataforma (**Android, iOS e Web/PWA**) desenvolvido em **React Native**, **TypeScript** e **Expo**, voltado para a organização e acompanhamento da rotina acadêmica universitária.
 
-Aplicativo móvel desenvolvido em **React Native** com **TypeScript** e **Expo**, voltado para a centralização, organização e acompanhamento da rotina acadêmica do estudante universitário.
+Projeto desenvolvido para a disciplina de **Desenvolvimento de Aplicativos Móveis** (10º Semestre) — **FHO - Fundação Hermínio Ometto (Campus Araras)**.
 
-Este projeto faz parte da disciplina de **Desenvolvimento de Aplicativos Móveis** (10º Semestre) — **FHO - Fundação Hermínio Ometto - Campus Araras**.
-
----
-
-## 👥 Integrantes do Grupo
+## 👥 Identificação
 * **Bruno Rafael Barbosa** — RA: 112944
 * **João Pedro Magrin** — RA: 113164
 * **Docente Responsável:** Prof. Diego Fiori (`dfiori@fho.edu.br`)
-* **Repositório Oficial:** [github.com/brfaeldev/accademy](https://github.com/brfaeldev/accademy)
+* **Repositório:** [github.com/brfaeldev/accademy](https://github.com/brfaeldev/accademy)
 
 ---
 
-## 🎯 Problema Resolvido (GAP) e Solução
+## 🚀 Telas e Funcionalidades
 
-A dispersão de informações acadêmicas (prazos anotados em cadernos, salas de aula em murais, materiais em links avulsos e falta de clareza nas metas de aprovação) prejudica o rendimento do aluno universitário.
+O aplicativo possui **6 telas** integradas ao banco de dados local:
 
-O **Controle de Estudos** resolve esse problema reunindo em uma única interface intuitiva:
-1. **Planejamento de Aulas e Horários:** Localização de salas, blocos e contatos dos professores;
-2. **Agenda e Acompanhamento de Prazos:** Tarefas, provas e trabalhos com status de entrega em tempo real;
-3. **Boletim Dinâmico e Simulador de Notas:** Acompanhamento de médias ponderadas e cálculo automático da nota necessária na Prova Final;
-4. **Central de Foco (Pomodoro):** Cronômetro de estudo com métricas de tempo líquido dedicado cruzadas com as matérias.
-
----
-
-## 🚀 Telas e Funcionalidades Desenvolvidas (MVP)
-
-O aplicativo conta com **6 telas completas e navegáveis**:
-
-1. **Autenticação e Multiusuário (`AuthScreen`):**
-   * Cadastro e login de estudantes com isolamento de dados por usuário (`user_id`);
-   * Senhas armazenadas com hash criptográfico **SHA-256** no SQLite e persistência de sessão via `AsyncStorage`.
-
-2. **Dashboard (Tela Inicial):**
-   * Resumo diário do estudante com banner de perfil e boas-vindas contextuais;
-   * Card dinâmico da próxima aula com correspondência automática pelo dia da semana;
-   * Lista real de tarefas e provas dos próximos 7 dias (e alertas de atraso);
-   * Cálculo da **Média Global** ponderada entre as disciplinas cursadas;
-   * **Botão Flutuante (FAB)** para iniciar rapidamente o cronômetro de estudos.
-
-3. **Gestão Acadêmica (Disciplinas e Contatos):**
-   * Lista de matérias do semestre atual (`FlatList`) com etiquetas, cores personalizadas e **meta de aprovação configurável** (`targetGrade`);
-   * Detalhes de docentes responsáveis, e-mail institucional e localização física/remota das aulas;
-   * **CRUD Completo:** Criação, edição e exclusão de matérias com modal de confirmação multiplataforma (`ConfirmModal`).
-
-4. **Agenda e Prazos (Controle de Tarefas):**
-   * Visualização com filtros por status: `Pendente`, `Em Andamento` e `Concluído`;
-   * Cards unificados (`TaskCard`) com tipo de atividade (Prova, Trabalho, Lista, Seminário), pesos acadêmicos e validação/formatação de datas (`DD/MM/AAAA`);
-   * **CRUD Completo:** Cadastro, edição, exclusão e alternância rápida de status em 1 toque com rollback seguro.
-
-5. **Boletim e Simulador de Notas:**
-   * Barras de progresso visuais com percentual da média atingida em cada disciplina;
-   * **Calculadora Dinâmica Interativa:** Simula automaticamente *"Quanto preciso tirar na Prova Final para passar?"* baseado nas notas, pesos e meta da disciplina;
-   * **CRUD Completo de Notas:** Lançamento, edição e exclusão de notas parciais com suporte a separador decimal com vírgula ou ponto.
-
-6. **Central de Foco (Tempo de Estudo):**
-   * Cronômetro interativo com modo **Pomodoro (25m Foco / 5m Pausa Curta / 15m Pausa Longa)** elevado ao contexto global (continua rodando ao alternar entre abas e sincroniza em background via `AppState`);
-   * Vinculação da sessão à disciplina estudada para rastreamento de esforço;
-   * **Relatórios de Produtividade:** Barras de horas líquidas dedicadas por disciplina cruzadas com o rendimento acadêmico;
-   * Histórico completo e expansível de sessões de estudo realizadas, com suporte a exclusão de registros.
+1. **Autenticação (`AuthScreen`):**
+   * Cadastro e login local com isolamento de dados por estudante (`user_id`);
+   * Senhas armazenadas com hash **SHA-256** no SQLite e sessão persistida via `AsyncStorage`.
+2. **Dashboard (`DashboardScreen`):**
+   * Resumo diário de tarefas ativas, média global ponderada e horas de foco;
+   * Identificação dinâmica da próxima aula com base no dia da semana;
+   * Lista de entregas vencendo nos próximos 7 dias ou em atraso.
+3. **Disciplinas (`SubjectsScreen`):**
+   * CRUD completo de matérias com código, docente, e-mail, local/link, horários, cor de identificação e meta de aprovação configurável (`targetGrade`, padrão `7.0`).
+4. **Agenda e Prazos (`TasksScreen`):**
+   * CRUD completo de provas, trabalhos, listas e seminários com filtro por status (`Pendente`, `Em Andamento`, `Concluído`), máscara/validação de data (`DD/MM/AAAA`) e alternância rápida de status com rollback em caso de falha.
+5. **Boletim e Simulador (`GradesScreen`):**
+   * Lançamento, edição e exclusão de notas e pesos por disciplina;
+   * Simulador dinâmico que calcula a nota mínima necessária na Prova Final para atingir a meta de aprovação.
+6. **Central de Foco (`FocusScreen`):**
+   * Cronômetro **Pomodoro** (`25m` Foco / `5m` Pausa Curta / `15m` Pausa Longa) mantido no contexto global (continua ativo ao trocar de aba e sincroniza com o relógio do sistema em segundo plano via `AppState`);
+   * Registro automático ou manual (`+30 min`) de sessões vinculadas às matérias e relatório de horas dedicadas vs. média acadêmica.
 
 ---
 
-## 🗄️ Modelagem de Dados Relacional (SQLite)
+## 🗄️ Banco de Dados Relacional (SQLite)
 
-O aplicativo utiliza banco de dados **SQLite relacional local** gerenciado via biblioteca `expo-sqlite`, com chaves estrangeiras ativadas (`PRAGMA foreign_keys = ON;`), integridade referencial com exclusão em cascata e índices para consultas de alta performance.
+Persistência local gerenciada via `expo-sqlite` (`academy.db`) com `PRAGMA foreign_keys = ON`, índices relacionais e integridade referencial:
 
-### Esquema das Tabelas
-
-| Tabela | Colunas Principais | Relacionamentos e Regras |
+| Tabela | Colunas | Relacionamentos |
 | :--- | :--- | :--- |
-| **`users`** | `id` (PK), `name`, `email` (UNIQUE), `password` (SHA-256), `course`, `created_at` | Tabela de contas locais de estudantes com índice único em `email`. |
-| **`subjects`** | `id` (PK), `user_id` (FK), `name`, `code`, `professor`, `professor_email`, `location`, `schedule`, `color`, `target_grade` | `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`. Tabela mãe de matérias do semestre acadêmico. |
-| **`tasks`** | `id` (PK), `subject_id` (FK), `title`, `description`, `type`, `due_date`, `weight`, `status` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE`. Índices em `subject_id` e `due_date`. |
-| **`grades`** | `id` (PK), `subject_id` (FK), `name`, `grade`, `weight` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE`. Índice em `subject_id`. |
-| **`study_sessions`** | `id` (PK), `user_id` (FK), `subject_id` (FK), `subject_name`, `duration_minutes`, `timestamp`, `date`, `notes` | `FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL`. Índices em `user_id` e `date`. |
-
-```sql
--- Exemplo DDL da integridade e índices relacionais
-CREATE TABLE IF NOT EXISTS tasks (
-  id TEXT PRIMARY KEY NOT NULL,
-  subject_id TEXT NOT NULL,
-  title TEXT NOT NULL,
-  description TEXT,
-  type TEXT NOT NULL,
-  due_date TEXT NOT NULL,
-  weight REAL NOT NULL,
-  status TEXT NOT NULL,
-  FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_tasks_subject_id ON tasks(subject_id);
-CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
-```
+| **`users`** | `id` (PK), `name`, `email` (UNIQUE), `password` (SHA-256), `course`, `created_at` | Conta do estudante (índice único em `email`). |
+| **`subjects`** | `id` (PK), `user_id` (FK), `name`, `code`, `professor`, `professor_email`, `location`, `schedule`, `color`, `target_grade` | `user_id -> users(id) ON DELETE CASCADE`. |
+| **`tasks`** | `id` (PK), `subject_id` (FK), `title`, `description`, `type`, `due_date`, `weight`, `status` | `subject_id -> subjects(id) ON DELETE CASCADE`. |
+| **`grades`** | `id` (PK), `subject_id` (FK), `name`, `grade`, `weight` | `subject_id -> subjects(id) ON DELETE CASCADE`. |
+| **`study_sessions`** | `id` (PK), `user_id` (FK), `subject_id` (FK), `subject_name`, `duration_minutes`, `timestamp`, `date`, `notes` | `user_id -> users(id) ON DELETE CASCADE` e `subject_id -> subjects(id) ON DELETE SET NULL`. |
 
 ---
 
-## 🧮 Regras de Negócio e Fórmulas Acadêmicas
+## 🧮 Fórmulas Acadêmicas
 
-### 1. Cálculo da Média Ponderada Atual
-A média de cada disciplina considera todas as avaliações lançadas com seus respectivos pesos:
+* **Média Ponderada por Disciplina:**
+  $$\text{Média Atual} = \frac{\sum (\text{Nota}_i \times \text{Peso}_i)}{\sum \text{Peso}_i}$$
 
-$$\text{Média Atual} = \frac{\sum (\text{Nota}_i \times \text{Peso}_i)}{\sum \text{Peso}_i}$$
-
-### 2. Simulador de Nota na Prova Final
-O sistema calcula matematicamente a pontuação exata que o estudante precisa atingir na Prova Final para alcançar a meta de aprovação ($\text{Meta} = 7.0$):
-
-$$\text{Nota Necessária} = \frac{\text{Meta} \times (\text{Peso Total} + \text{Peso Final}) - (\text{Média Atual} \times \text{Peso Total})}{\text{Peso Final}}$$
-
-* Se a média já for superior à meta, o resultado retorna automaticamente **0.0** com indicação visual de que o aluno já atingiu os critérios de aprovação.
-
-### 3. Ciclos de Foco (Pomodoro)
-* **Foco:** Bloco de 25 minutos de estudo ininterrupto;
-* **Pausa Curta:** Intervalo de 5 minutos;
-* **Pausa Longa:** Intervalo de 15 minutos;
-* Cada sessão concluída grava a duração líquida e associa à matéria selecionada, alimentando os gráficos de dedicação do estudante.
+* **Nota Necessária na Prova Final:**
+  $$\text{Nota Necessária} = \max\left(0,\; \frac{\text{Meta} \times (\text{Peso Total} + \text{Peso Final}) - (\text{Média Atual} \times \text{Peso Total})}{\text{Peso Final}}\right)$$
 
 ---
 
-## 🎨 Design System e Identidade Visual
-
-A interface foi projetada com base em tokens semânticos centralizados em `src/theme/theme.ts`:
-
-* **Cores Primárias:** Indigo (`#4F46E5`), Roxo (`#8B5CF6`) e fundo Slate suave (`#F8FAFC`);
-* **Cores de Feedback:**
-  * 🟢 **Sucesso:** Emerald (`#10B981`) para tarefas concluídas e aprovação em disciplinas;
-  * 🟡 **Alerta:** Amber (`#F59E0B`) para tarefas em andamento e notas no limiar;
-  * 🔴 **Perigo:** Red (`#EF4444`) para tarefas pendentes, atrasos e reprovação;
-  * 🔵 **Informação:** Sky (`#0284C7`) para avisos e dicas de estudo.
-* **Componentes Reutilizáveis:**
-  * `Badge`: Tags coloridas e semânticas para tipos de tarefas e status;
-  * `Button`: Suporte a múltiplos tamanhos, estados de carregamento e variantes (primário, secundário, outline);
-  * `Card`: Contêiner padrão com sombras suaves e bordas consistentes;
-  * `ProgressBar`: Barras de progresso com gradiente e indicação percentual;
-  * `ModalWrapper`: Janelas modais responsivas para cadastro e edição rápida;
-  * `TabBar`: Barra inferior com ícones vetoriais e realce de aba ativa.
-
----
-
-## 🏗️ Arquitetura e Padrão de Mercado
-
-O projeto foi estruturado seguindo as melhores práticas de mercado (arquitetura em camadas, separação de responsabilidades, Repository Pattern e componentização):
+## 🏗️ Estrutura do Projeto
 
 ```text
 academy/
-├── assets/                 # Ícones, splash screen e identidade visual do app
-├── docs/                   # Documentação da disciplina, PDFs e roteiros de apresentação
-├── public/                 # Recursos estáticos, manifesto e Service Worker para suporte Web/PWA
+├── assets/                 # Ícones e splash screen do aplicativo
+├── public/                 # Manifesto, ícones e Service Worker para suporte Web/PWA
 ├── src/
-│   ├── components/         # Componentes modulares da interface
-│   │   ├── common/         # Componentes atômicos e moléculas reutilizáveis (Badge, Button, Card, ChipSelector, ConfirmModal, EmptyState, FloatingActionButton, FormField, Header, ModalWrapper, ProgressBar, SubjectSelector)
-│   │   ├── domain/         # Componentes de domínio (DedicationReportCard, FinalExamSimulatorCard, GradeFormModal, LoginForm, PomodoroTimerCard, RegisterForm, SavedAccountsList, SubjectCard, SubjectFormModal, SubjectGradeCard, TaskCard, TaskFormModal)
-│   │   └── navigation/     # Componentes de navegação (TabBar inferior customizada)
-│   ├── context/            # Gerenciamento de estado global com React Context API (AppContext)
-│   ├── database/           # Camada de banco de dados SQLite relacional (expo-sqlite)
-│   │   ├── database.ts     # Conexão singleton, migrações e controle de chaves estrangeiras
-│   │   ├── logger.ts       # Utilitário de auditoria de queries SQL (restrito a __DEV__)
-│   │   ├── schema.ts       # DDL das tabelas relacionais, foreign keys com CASCADE e índices
-│   │   ├── seed.ts         # Utilitários de limpeza e reinicialização do banco
-│   │   ├── types.ts        # Tipagens específicas da camada SQLite e mapeadores Row <-> Entidade
-│   │   ├── index.ts        # Ponto de exportação unificado da camada de dados
-│   │   └── repositories/   # Repositórios especializados (Repository Pattern)
-│   │       ├── UserRepository.ts          # Autenticação com hash SHA-256 e gestão de contas
-│   │       ├── SubjectRepository.ts       # CRUD e consultas de matérias/disciplinas
-│   │       ├── TaskRepository.ts          # CRUD, ordenação e filtros de tarefas/provas
-│   │       ├── GradeRepository.ts         # CRUD de notas parciais por disciplina
-│   │       └── StudySessionRepository.ts  # Registro e histórico de sessões Pomodoro
-│   ├── hooks/              # Custom Hooks (usePomodoroTimer)
-│   ├── screens/            # As 6 telas orquestradoras da aplicação
-│   │   ├── AuthScreen.tsx       # Login e cadastro multiusuário local
-│   │   ├── DashboardScreen.tsx  # Visão geral diária, próxima aula dinâmica, prazos e FAB
-│   │   ├── SubjectsScreen.tsx   # Gestão de matérias, cores, metas, docentes e salas
-│   │   ├── TasksScreen.tsx      # Agenda de tarefas e provas com filtros de status
-│   │   ├── GradesScreen.tsx     # Boletim acadêmico e simulador de nota para prova final
-│   │   └── FocusScreen.tsx      # Cronômetro Pomodoro e métricas de dedicação líquida
-│   ├── theme/              # Design System (tokens de cores, tipografia, espaçamentos e sombras)
-│   ├── types/              # Definições de tipos, contratos e interfaces TypeScript
+│   ├── components/
+│   │   ├── common/         # Componentes base (Badge, Button, Card, ChipSelector, ConfirmModal, EmptyState, FloatingActionButton, FormField, Header, ModalWrapper, ProgressBar, SubjectSelector)
+│   │   ├── domain/         # Componentes de domínio e modais (DedicationReportCard, FinalExamSimulatorCard, GradeFormModal, LoginForm, PomodoroTimerCard, RegisterForm, SavedAccountsList, SubjectCard, SubjectFormModal, SubjectGradeCard, TaskCard, TaskFormModal)
+│   │   └── navigation/     # Barra de navegação inferior (TabBar)
+│   ├── context/            # Estado global e orquestração (AppContext)
+│   ├── database/           # Conexão SQLite, schema DDL, migrações, logger e repositories
+│   │   └── repositories/   # UserRepository, SubjectRepository, TaskRepository, GradeRepository, StudySessionRepository
+│   ├── hooks/              # Hook do cronômetro Pomodoro (usePomodoroTimer)
+│   ├── screens/            # Telas da aplicação (Auth, Dashboard, Subjects, Tasks, Grades, Focus)
+│   ├── theme/              # Tokens de cores, espaçamentos, bordas e sombras (theme.ts)
+│   ├── types/              # Contratos e interfaces TypeScript
 │   └── utils/              # Funções puras (crypto, dateUtils, formatters, gradeCalculations)
-├── App.tsx                 # Entrada e orquestrador principal de contexto e navegação
-├── app.json                # Configurações do Expo (identificadores, splash, orientação e tema)
-├── index.ts                # Ponto de inicialização do Expo e registro do Service Worker PWA
-├── metro.config.js         # Configurações do empacotador Metro e cabeçalhos COOP/COEP
-├── package.json            # Dependências, scripts e metadados do projeto
-└── tsconfig.json           # Configurações de compilação do TypeScript
+├── App.tsx                 # Componente raiz e controle de navegação
+├── app.json                # Configurações do Expo
+├── index.ts                # Entrada da aplicação e registro do Service Worker na Web
+├── metro.config.js         # Suporte a WASM e headers COOP/COEP para expo-sqlite na Web
+├── package.json            # Dependências e scripts
+└── tsconfig.json           # Configuração do TypeScript (strict mode)
 ```
 
 ---
 
-## 💻 Como Executar o Projeto
+## 💻 Como Executar
 
-### 📋 Pré-requisitos
-* **Node.js** (versão 18.x ou 20.x LTS recomendada)
-* **npm** (ou **yarn**)
-* **Git** instalado
-* *(Opcional)* Aplicativo **Expo Go** instalado no smartphone:
-  * [Google Play Store (Android)](https://play.google.com/store/apps/details?id=host.exp.exponent)
-  * [Apple App Store (iOS)](https://apps.apple.com/app/expo-go/id982107779)
+### Pré-requisitos
+* **Node.js** (18+ ou 20+ LTS)
+* Aplicativo **Expo Go** (opcional, para teste em dispositivo físico Android/iOS)
 
----
+### Instalação e Execução
 
-### 🚀 Passo a Passo
+```bash
+# 1. Instalar dependências
+npm install
 
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/brfaeldev/accademy.git
-   cd accademy
-   ```
+# 2. Iniciar o servidor de desenvolvimento
+npx expo start
+```
 
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
-
-3. **Inicie o servidor de desenvolvimento:**
-   ```bash
-   npx expo start
-   ```
-   *(ou utilize `npm start`)*
-
-4. **Abra a aplicação na plataforma de sua preferência:**
-   * 📱 **Android físico:** Abra o app **Expo Go** e escaneie o QR Code exibido no terminal.
-   * 🍎 **iOS físico (iPhone):** Abra o aplicativo nativo da **Câmera**, aponte para o QR Code e toque no banner para abrir no Expo Go.
-   * 🌐 **Navegador Web:** Pressione a tecla `w` no terminal ou execute `npm run web` (o projeto possui suporte a SQLite via WASM e cabeçalhos de isolamento de memória no Metro).
-   * 🤖 **Emulador Android:** Pressione a tecla `a` no terminal (requer Android Studio com AVD configurado).
-   * 🍏 **Simulador iOS:** Pressione a tecla `i` no terminal (requer macOS com Xcode).
-
----
-
-### 🛠️ Scripts Úteis
+### Comandos Disponíveis
 
 | Comando | Descrição |
 | :--- | :--- |
-| `npm start` ou `npx expo start` | Inicia o Metro Bundler interativo do Expo |
-| `npm run web` | Inicia a aplicação diretamente no navegador padrão |
-| `npm run android` | Inicia e conecta ao emulador Android ativo |
-| `npm run ios` | Inicia e conecta ao simulador iOS (macOS) |
-| `npm run lint` | Executa o linter ESLint para validação de código |
-
----
-
-### 💡 Dicas e Solução de Problemas
-
-* **Wi-Fi com isolamento de rede ou firewall (comum em redes institucionais)?**  
-  Se o smartphone e o computador não conseguirem se comunicar na mesma rede local, inicie o Expo com o modo de túnel:
-  ```bash
-  npx expo start --tunnel
-  ```
-* **Limpar cache do Metro Bundler:**  
-  Caso ocorra algum comportamento inesperado de cache após alterações de pacotes:
-  ```bash
-  npx expo start -c
-  ```
-* **Inicialização Limpa por Estudante:**  
-  Na primeira inicialização, o banco de dados relacional SQLite (`academy.db`) cria automaticamente todas as tabelas e índices. Cada conta criada pelo estudante inicia 100% limpa e isolada, sem dados fictícios pré-imputados.
-
----
-
-## 🔮 Roadmap e Evoluções Futuras
-
-* [ ] **Notificações Push Locais:** Avisos automáticos no smartphone 24h e 2h antes do prazo final de tarefas e provas;
-* [ ] **Integração com Google Calendar:** Sincronização automática das datas de aulas e avaliações com a agenda do celular;
-* [ ] **Exportação de Relatórios (PDF / CSV):** Geração de histórico acadêmico consolidado e relatório de dedicação líquida para envio a professores ou tutores;
-* [ ] **Sincronização em Nuvem (Cloud Sync):** Autenticação multiusuário com sincronização em nuvem e suporte nativo *offline-first*;
-* [ ] **Modo Escuro (Dark Mode):** Alternância automática conforme a preferência do sistema operacional.
-
----
-
-## 📊 Roteiro para a Apresentação (5 Slides da Atividade Prática 02)
-
-1. **Slide 1 — Identificação:** Nome do Projeto (*Controle de Estudos*), Integrantes (Bruno Rafael Barbosa, João Pedro Magrin) e Tecnologias (*React Native, TypeScript, Expo*).
-2. **Slide 2 — Problema e MVP:** O GAP da dispersão de prazos e notas acadêmicas; as 4 prioridades atendidas no MVP (Agenda, Grade, Notas e Foco).
-3. **Slide 3 — Arquitetura e Telas:** Fluxo de navegação em abas, estrutura de pastas e componentes modulares.
-4. **Slide 4 — Decisões Técnicas e Recursos:** Simulação dinâmica de nota final, cronômetro Pomodoro com persistência e design system limpo.
-5. **Slide 5 — Demonstração e Próximos Passos:** Demonstração prática do app rodando no Expo Go e link do GitHub.
+| `npm start` | Inicia o Metro Bundler interativo |
+| `npm run web` | Inicia a aplicação no navegador Web (com SQLite via WASM) |
+| `npm run android` | Abre no emulador/dispositivo Android |
+| `npm run ios` | Abre no simulador iOS (macOS) |
+| `npm run lint` | Executa a verificação estática com ESLint (`expo lint`) |
+| `npx tsc --noEmit` | Executa a checagem de tipos do TypeScript |
 
 ---
 
 ## 📄 Licença
 
-Este projeto é desenvolvido para fins acadêmicos sob a licença **MIT** — consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
+Distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.

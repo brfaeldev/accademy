@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 import { CREATE_TABLES_SQL, CREATE_INDEXES_SQL } from './schema';
-import { seedDatabaseIfEmpty, clearAllTables } from './seed';
+import { clearAllTables } from './seed';
 import { logSQL } from './logger';
 
 const DATABASE_NAME = 'academy.db';
@@ -105,17 +105,6 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
       console.warn('Aviso ao criar índices relacionais:', indexError);
     }
 
-    // 4. Remove resquícios de dados mock hardcoded de execuções anteriores
-    try {
-      await db.runAsync("DELETE FROM tasks WHERE id IN ('task-1', 'task-2', 'task-3', 'task-4', 'task-5')");
-      await db.runAsync("DELETE FROM grades WHERE id IN ('grade-1', 'grade-2', 'grade-3', 'grade-4', 'grade-5', 'grade-6', 'grade-7')");
-      await db.runAsync("DELETE FROM study_sessions WHERE id IN ('session-1', 'session-2', 'session-3', 'session-4') OR user_id IS NULL");
-      await db.runAsync("DELETE FROM subjects WHERE id IN ('sub-1', 'sub-2', 'sub-3', 'sub-4') OR user_id IS NULL");
-      await db.runAsync("DELETE FROM users WHERE id IN ('user-1', 'user-2')");
-    } catch (e) {
-      console.warn('Limpeza de dados legados do mock:', e);
-    }
-
     return db;
   })();
 
@@ -131,9 +120,8 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 export async function resetDatabase(): Promise<void> {
   g.__academy_sqlite_init_promise__ = null;
   const db = await getDatabase();
-  logSQL('RESET', 'Limpando tabelas e recriando seed inicial...');
+  logSQL('RESET', 'Limpando todas as tabelas do banco...');
   await clearAllTables(db);
-  await seedDatabaseIfEmpty(db);
 }
 
 /**

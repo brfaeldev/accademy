@@ -7,9 +7,15 @@ function rightRotate(value: number, amount: number): number {
   return (value >>> amount) | (value << (32 - amount));
 }
 
+function toUtf8BinaryString(str: string): string {
+  return encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, hex: string) =>
+    String.fromCharCode(parseInt(hex, 16))
+  );
+}
+
 export function sha256(asciiInput: string): string {
-  // Codifica string UTF-8 para bytes ASCII/UTF-8
-  const utf8 = unescape(encodeURIComponent(asciiInput));
+  // Codifica string UTF-8 para bytes ASCII/UTF-8 sem usar APIs depreciadas
+  const utf8 = toUtf8BinaryString(asciiInput);
   const mathPow = Math.pow;
   const maxWord = mathPow(2, 32);
   const lengthProperty = 'length';

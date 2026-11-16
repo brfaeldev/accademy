@@ -20,14 +20,6 @@ export const StudySessionRepository = {
     return rows.map(mapStudySessionFromRow);
   },
 
-  async getBySubjectId(subjectId: string): Promise<StudySession[]> {
-    const db = await getDatabase();
-    const sql = 'SELECT * FROM study_sessions WHERE subject_id = ? ORDER BY timestamp DESC';
-    logSQL('SELECT_BY_SUBJECT', sql, [subjectId]);
-    const rows = await db.getAllAsync<StudySessionRow>(sql, [subjectId]);
-    return rows.map(mapStudySessionFromRow);
-  },
-
   async create(session: Omit<StudySession, 'id'>, userId?: string): Promise<StudySession> {
     const db = await getDatabase();
     const id = generateId('sess');

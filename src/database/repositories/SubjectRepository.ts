@@ -19,14 +19,6 @@ export const SubjectRepository = {
     return rows.map(mapSubjectFromRow);
   },
 
-  async getById(id: string): Promise<Subject | null> {
-    const db = await getDatabase();
-    const sql = 'SELECT * FROM subjects WHERE id = ?';
-    logSQL('SELECT_ONE_SUBJECT', sql, [id]);
-    const row = await db.getFirstAsync<SubjectRow>(sql, [id]);
-    return row ? mapSubjectFromRow(row) : null;
-  },
-
   async create(subject: Omit<Subject, 'id'>, userId?: string): Promise<Subject> {
     const db = await getDatabase();
     const id = generateId('sub');

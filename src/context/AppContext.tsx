@@ -10,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Subject, Task, GradeItem, StudySession, TaskStatus, User } from '../types';
 import {
   initDatabase,
-  resetDatabase,
   SubjectRepository,
   TaskRepository,
   GradeRepository,
@@ -79,7 +78,6 @@ interface AppContextData {
     finalExamWeight?: number,
     targetGrade?: number
   ) => number;
-  resetAllData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextData>({} as AppContextData);
@@ -238,8 +236,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // --- Sessões de Estudo e Cronômetro Pomodoro ---
+  const addStudySession = useCallback(
+    async (session: Omit<StudySession, 'id'>) => {
+      try {
+        const newSession = await StudySessionRepository.create(
+          session,
+          currentUser?.id
+        );
+        setStudySessions((prev) => [newSession, ...prev]);
+      } catch (error) {
+        console.error('Erro ao adicionar sessão de estudo:', error);
+      }
+    },
+    [currentUser]
+  );
+
+  const deleteStudySession = useCallback(async (id: string) => {
+    try {
+      await StudySessionRepository.delete(id);
+      setStudySessions((prev) => prev.filter((s) => s.id !== id));
+    } catch (error) {
+      console.error('Erro ao excluir sessão de estudo:', error);
+    }
+  }, []);
+
+  // Cronômetro Pomodoro elevado ao contexto global para não perder estado ao trocar de aba
+  const pomodoro = usePomodoroTimer({
+    subjects,
+    onCompleteSession: addStudySession,
+  });
+
   const logout = async () => {
     try {
+      pomodoro.resetTimer();
       setCurrentUser(null);
       setSubjects([]);
       setTasks([]);
@@ -339,7 +369,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
 
     try {
-      await TaskRepository.toggleStatus(id);
+      await TaskRepository.updateStatus(id, nextStatus);
     } catch (error) {
       console.error('Erro ao alternar status da tarefa no SQLite:', error);
       // Reverte atualização otimista se o SQLite falhar
@@ -379,37 +409,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  // --- Sessões de Estudo ---
-  const addStudySession = useCallback(
-    async (session: Omit<StudySession, 'id'>) => {
-      try {
-        const newSession = await StudySessionRepository.create(
-          session,
-          currentUser?.id
-        );
-        setStudySessions((prev) => [newSession, ...prev]);
-      } catch (error) {
-        console.error('Erro ao adicionar sessão de estudo:', error);
-      }
-    },
-    [currentUser]
-  );
-
-  const deleteStudySession = useCallback(async (id: string) => {
-    try {
-      await StudySessionRepository.delete(id);
-      setStudySessions((prev) => prev.filter((s) => s.id !== id));
-    } catch (error) {
-      console.error('Erro ao excluir sessão de estudo:', error);
-    }
-  }, []);
-
-  // Cronômetro Pomodoro elevado ao contexto global para não perder estado ao trocar de aba
-  const pomodoro = usePomodoroTimer({
-    subjects,
-    onCompleteSession: addStudySession,
-  });
-
   // --- Cálculos e Simulador de Notas ---
   const getSubjectAverage = useCallback(
     (subjectId: string): SubjectAverageResult => {
@@ -439,24 +438,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     },
     [grades]
   );
-
-  const resetAllData = async () => {
-    try {
-      setIsLoading(true);
-      await resetDatabase();
-      setSubjects([]);
-      setTasks([]);
-      setGrades([]);
-      setStudySessions([]);
-      setAvailableAccounts([]);
-      setCurrentUser(null);
-      await AsyncStorage.removeItem(AUTH_SESSION_KEY);
-    } catch (error) {
-      console.error('Erro ao resetar dados do SQLite:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <AppContext.Provider
@@ -488,7 +469,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         getSubjectAverage,
         getGlobalAverage,
         calculateNeededGrade,
-        resetAllData,
       }}
     >
       {children}
@@ -497,8 +477,4 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 };
 
 export const useApp = () => useContext(AppContext);
-export const useAuth = () => {
-  const { currentUser, availableAccounts, login, register, logout, refreshAccounts } =
-    useContext(AppContext);
-  return { currentUser, availableAccounts, login, register, logout, refreshAccounts };
-};
+

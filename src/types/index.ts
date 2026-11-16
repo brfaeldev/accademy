@@ -54,10 +54,3 @@ export interface User {
   createdAt: string;
 }
 
-export interface AppState {
-  subjects: Subject[];
-  tasks: Task[];
-  grades: GradeItem[];
-  studySessions: StudySession[];
-  currentUser?: User | null;
-}

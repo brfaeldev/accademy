@@ -123,13 +123,4 @@ export const UserRepository = {
 
     return mapUserFromRow(row);
   },
-
-  /**
-   * Retorna a quantidade total de usuários cadastrados
-   */
-  async count(): Promise<number> {
-    const db = await getDatabase();
-    const result = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM users');
-    return result?.count ?? 0;
-  },
 };
