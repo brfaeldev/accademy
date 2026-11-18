@@ -1,3 +1,11 @@
+/**
+ * Componente Badge (Etiqueta Visual)
+ *
+ * Exibe pequenas etiquetas visuais utilizadas para indicar status de tarefas
+ * (Concluído, Em Andamento, Pendente), tipos de atividade (Prova, Trabalho, etc.)
+ * ou códigos de matérias com cores personalizadas.
+ */
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../../theme/theme';

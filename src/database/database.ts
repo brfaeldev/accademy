@@ -1,3 +1,11 @@
+/**
+ * Gerenciador da Conexão SQLite (database.ts)
+ *
+ * Configura o singleton de conexão com o banco relacional local ('accademy.db'),
+ * executa criação de tabelas/índices, migrações seguras de colunas e expõe
+ * utilitários de inspeção e depuração no console.
+ */
+
 import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 import { CREATE_TABLES_SQL, CREATE_INDEXES_SQL } from './schema';

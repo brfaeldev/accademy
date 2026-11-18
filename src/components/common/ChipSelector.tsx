@@ -1,3 +1,11 @@
+/**
+ * Componente ChipSelector (Seletor de Opções)
+ *
+ * Oferece interface interativa para escolha de opções únicas ou filtros,
+ * com suporte aos modos de exibição: abas segmentadas ('segmented'),
+ * chips em carrossel horizontal ('filter') ou grupo de botões ('chips').
+ */
+
 import React from 'react';
 import {
   View,

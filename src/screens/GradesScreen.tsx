@@ -1,3 +1,10 @@
+/**
+ * Tela de Boletim e Simulador (GradesScreen)
+ *
+ * Gerencia o histórico de notas e médias ponderadas por disciplina, além de
+ * disponibilizar o simulador interativo para cálculo da nota de exame final.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useApp } from '../context/AppContext';

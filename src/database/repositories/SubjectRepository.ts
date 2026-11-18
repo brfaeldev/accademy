@@ -1,3 +1,10 @@
+/**
+ * Repositório de Disciplinas (SubjectRepository)
+ *
+ * Gerencia a persistência relacional das matérias no SQLite, garantindo
+ * isolamento de dados por estudante (`user_id`) e integridade referencial.
+ */
+
 import { getDatabase } from '../database';
 import { Subject } from '../../types';
 import { SubjectRow, mapSubjectFromRow } from '../types';

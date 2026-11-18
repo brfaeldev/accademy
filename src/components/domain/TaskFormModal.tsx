@@ -1,3 +1,10 @@
+/**
+ * Componente TaskFormModal (Formulário de Tarefas e Entregas)
+ *
+ * Modal para agendamento e edição de avaliações e entregas (provas, listas,
+ * trabalhos), com seleção de matéria, máscara de data e peso acadêmico.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Subject, Task, TaskStatus, TaskType } from '../../types';

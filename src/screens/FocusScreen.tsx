@@ -1,3 +1,10 @@
+/**
+ * Tela de Foco e Pomodoro (FocusScreen)
+ *
+ * Central de produtividade que abriga o cronômetro Pomodoro, registro manual
+ * de horas de estudo, histórico de sessões e relatório de dedicação por matéria.
+ */
+
 import React, { useState } from 'react';
 import {
   View,

@@ -1,3 +1,10 @@
+/**
+ * Tela Inicial (DashboardScreen)
+ *
+ * Painel principal com visão consolidada da rotina do estudante: resumo de
+ * média global, horas de foco, card da próxima aula e entregas urgentes.
+ */
+
 import React from 'react';
 import {
   View,

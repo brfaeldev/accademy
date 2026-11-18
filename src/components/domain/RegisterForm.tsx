@@ -1,3 +1,10 @@
+/**
+ * Componente RegisterForm (Formulário de Cadastro)
+ *
+ * Coleta os dados para cadastro de uma nova conta de estudante (nome,
+ * e-mail, curso e senha segura), com validações e feedback de erros.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../../theme/theme';

@@ -1,3 +1,10 @@
+/**
+ * Componente TabBar (Barra de Navegação Inferior)
+ *
+ * Barra de navegação persistente que permite alternar entre as telas principais
+ * da aplicação, com realce visual da aba ativa e badges de contagem de tarefas.
+ */
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../../theme/theme';

@@ -1,3 +1,10 @@
+/**
+ * Componente DedicationReportCard (Relatório de Dedicação e Foco)
+ *
+ * Apresenta a relação entre o tempo investido em sessões de estudo
+ * e o desempenho acadêmico (média atual) obtido em cada disciplina.
+ */
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Subject, StudySession } from '../../types';

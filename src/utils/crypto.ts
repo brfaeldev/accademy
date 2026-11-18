@@ -1,3 +1,10 @@
+/**
+ * Utilitários Criptográficos (crypto.ts)
+ *
+ * Implementação pura de hash SHA-256 e validação de senhas para segurança
+ * de autenticação local compatível com Android, iOS e Web.
+ */
+
 const HASH_PREFIX = 'sha256:';
 
 /**

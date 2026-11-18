@@ -1,3 +1,10 @@
+/**
+ * Componente FinalExamSimulatorCard (Simulador de Exame / Prova Final)
+ *
+ * Calculadora interativa que permite ao estudante projetar a nota mínima
+ * necessária na avaliação final para alcançar a meta de aprovação da disciplina.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Subject } from '../../types';

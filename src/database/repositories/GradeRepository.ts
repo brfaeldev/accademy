@@ -1,3 +1,10 @@
+/**
+ * Repositório de Notas e Avaliações (GradeRepository)
+ *
+ * Executa as operações CRUD de notas no SQLite com isolamento por estudante,
+ * relacionando as avaliações com suas respectivas disciplinas.
+ */
+
 import { getDatabase } from '../database';
 import { GradeItem } from '../../types';
 import { GradeRow, mapGradeFromRow } from '../types';

@@ -1,3 +1,10 @@
+/**
+ * Componente Raiz da Aplicação (App.tsx)
+ *
+ * Configura o provedor de contexto global (AppProvider), controla o fluxo
+ * de autenticação e a navegação entre as 6 telas principais via abas (TabBar).
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,

@@ -1,3 +1,10 @@
+/**
+ * Schemas DDL do SQLite (schema.ts)
+ *
+ * Contém os comandos SQL de criação das tabelas (users, subjects, tasks,
+ * grades, study_sessions) com integridade referencial e índices relacionais.
+ */
+
 export const CREATE_TABLES_SQL = `
   PRAGMA foreign_keys = ON;
 

@@ -1,3 +1,11 @@
+/**
+ * Componente EmptyState (Estado Vazio)
+ *
+ * Apresentado quando uma lista ou visualização não possui itens a exibir
+ * (como ausência de matérias, tarefas ou sessões), trazendo ícone ilustrativo,
+ * título, descrição explicativa e botão de ação para cadastro rápido.
+ */
+
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { Card } from './Card';

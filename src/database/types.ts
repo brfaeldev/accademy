@@ -1,3 +1,10 @@
+/**
+ * Tipagens e Mapeamentos do Banco de Dados (types.ts)
+ *
+ * Define as interfaces das linhas brutas (rows) persistidas nas tabelas SQLite
+ * e funções de conversão para as entidades de domínio da aplicação.
+ */
+
 import { Subject, Task, GradeItem, StudySession, User } from '../types';
 
 export interface SubjectRow {

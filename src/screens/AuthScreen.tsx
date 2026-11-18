@@ -1,3 +1,10 @@
+/**
+ * Tela de Autenticação (AuthScreen)
+ *
+ * Oferece interface de login e cadastro de estudantes com persistência
+ * de credenciais no SQLite (hash SHA-256) e isolamento multiusuário local.
+ */
+
 import React, { useState } from 'react';
 import {
   View,

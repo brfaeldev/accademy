@@ -1,3 +1,10 @@
+/**
+ * Componente GradeFormModal (Formulário de Notas e Avaliações)
+ *
+ * Modal para lançamento e edição de notas individuais (P1, P2, Trabalhos),
+ * incluindo seleção da matéria vinculada, valor da nota e respectivo peso acadêmico.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { GradeItem, Subject } from '../../types';

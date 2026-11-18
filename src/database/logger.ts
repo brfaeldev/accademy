@@ -1,3 +1,10 @@
+/**
+ * Logger de Queries SQL (logger.ts)
+ *
+ * Registra no console de desenvolvimento as instruções SQL executadas,
+ * facilitando a auditoria de queries e depuração das operações no banco.
+ */
+
 import { Platform } from 'react-native';
 
 export function logSQL(action: string, sql: string, params?: unknown[]) {

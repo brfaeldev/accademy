@@ -1,3 +1,10 @@
+/**
+ * Componente ModalWrapper (Estrutura de Modal / Bottom Sheet)
+ *
+ * Contêiner genérico para janelas modais com backdrop escuro, barra superior
+ * de título, botão de fechamento e rolagem interna com adaptação para teclado.
+ */
+
 import React, { ReactNode } from 'react';
 import {
   Modal,

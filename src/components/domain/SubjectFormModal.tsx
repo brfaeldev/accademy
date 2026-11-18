@@ -1,3 +1,10 @@
+/**
+ * Componente SubjectFormModal (Formulário de Disciplina)
+ *
+ * Modal para criação e edição de disciplinas, incluindo código institucional,
+ * nome do docente, e-mail de contato, sala, horários e meta de nota.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Subject } from '../../types';

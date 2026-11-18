@@ -1,3 +1,11 @@
+/**
+ * Componente Button (Botão de Ação)
+ *
+ * Botão padronizado do design system com suporte a múltiplas variantes visuais
+ * (primary, secondary, outline, danger, ghost), diferentes tamanhos (sm, md, lg),
+ * ícones customizados e indicador de carregamento (loading).
+ */
+
 import React from 'react';
 import {
   TouchableOpacity,

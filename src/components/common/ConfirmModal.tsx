@@ -1,3 +1,11 @@
+/**
+ * Componente ConfirmModal (Modal de Confirmação)
+ *
+ * Diálogo modal para confirmação de ações irreversíveis ou de impacto,
+ * como exclusão de matérias, tarefas ou notas, com suporte a variantes
+ * de alerta ('danger' e 'primary').
+ */
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ModalWrapper } from './ModalWrapper';

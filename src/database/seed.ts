@@ -1,3 +1,9 @@
+/**
+ * Limpeza e Gerenciamento de Dados (seed.ts)
+ *
+ * Fornece rotinas transacionais para reset e limpeza do banco de dados SQLite.
+ */
+
 import { SQLiteDatabase } from 'expo-sqlite';
 
 /**

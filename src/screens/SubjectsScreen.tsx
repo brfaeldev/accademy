@@ -1,3 +1,10 @@
+/**
+ * Tela de Disciplinas (SubjectsScreen)
+ *
+ * Apresenta a grade de matérias do estudante com detalhes de docentes,
+ * salas, horários, cor temática, meta de nota e ações de CRUD completo.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useApp } from '../context/AppContext';

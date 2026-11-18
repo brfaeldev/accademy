@@ -1,3 +1,10 @@
+/**
+ * Definições de Tipos e Contratos (types/index.ts)
+ *
+ * Reúne todas as interfaces e tipos centrais da aplicação: entidades acadêmicas
+ * (Subject, Task, GradeItem, StudySession, User) e enums de status e tipos.
+ */
+
 export type TaskStatus = 'Pendente' | 'Em Andamento' | 'Concluído';
 
 export type TaskType = 'Prova' | 'Trabalho' | 'Lista' | 'Seminário' | 'Outro';
@@ -21,7 +28,7 @@ export interface Task {
   title: string;
   description?: string;
   type: TaskType;
-  dueDate: string; // YYYY-MM-DD
+  dueDate: string; // Data de entrega no formato AAAA-MM-DD
   weight: number; // Peso na média (ex: 2.0, 3.0 ou porcentagem)
   status: TaskStatus;
 }
@@ -30,8 +37,8 @@ export interface GradeItem {
   id: string;
   subjectId: string;
   name: string; // ex: "P1", "Trabalho 1", "P2"
-  grade: number; // 0 a 10
-  weight: number; // peso
+  grade: number; // Nota de 0 a 10
+  weight: number; // Peso da avaliação
 }
 
 export interface StudySession {
@@ -39,9 +46,9 @@ export interface StudySession {
   userId?: string;
   subjectId: string;
   subjectName: string;
-  durationMinutes: number; // tempo dedicado
-  timestamp: string; // ISO date
-  date: string; // YYYY-MM-DD
+  durationMinutes: number; // Tempo dedicado em minutos
+  timestamp: string; // Data e hora no formato ISO
+  date: string; // Data no formato AAAA-MM-DD
   notes?: string;
 }
 
@@ -51,6 +58,6 @@ export interface User {
   email: string;
   password?: string;
   course?: string;
-  createdAt: string;
+  createdAt: string; // Data de criação no formato ISO
 }
 

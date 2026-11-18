@@ -1,3 +1,10 @@
+/**
+ * Cálculos Acadêmicos e Médias (gradeCalculations.ts)
+ *
+ * Centraliza as regras de negócio matemáticas: cálculo de média ponderada,
+ * nota necessária no exame final e média global ponderada do estudante.
+ */
+
 import { GradeItem, Subject } from '../types';
 
 export interface SubjectAverageResult {

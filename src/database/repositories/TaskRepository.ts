@@ -1,3 +1,10 @@
+/**
+ * Repositório de Tarefas e Entregas (TaskRepository)
+ *
+ * Realiza as operações de consulta, criação, atualização de status e remoção
+ * de atividades acadêmicas no SQLite, com ordenação cronológica por prazo.
+ */
+
 import { getDatabase } from '../database';
 import { Task, TaskStatus } from '../../types';
 import { TaskRow, mapTaskFromRow } from '../types';

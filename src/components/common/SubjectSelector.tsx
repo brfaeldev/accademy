@@ -1,3 +1,10 @@
+/**
+ * Componente SubjectSelector (Seletor Horizontal de Disciplinas)
+ *
+ * Exibe um carrossel horizontal de seleção de matérias cadastradas, indicando
+ * a cor de identificação da disciplina e destacando visualmente o item selecionado.
+ */
+
 import React from 'react';
 import {
   View,

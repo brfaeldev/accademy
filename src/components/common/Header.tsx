@@ -1,3 +1,10 @@
+/**
+ * Componente Header (Cabeçalho de Tela)
+ *
+ * Cabeçalho fixado no topo das telas principais com título em tipografia destacada,
+ * subtítulo informativo contextual e suporte a botão de ação secundário à direita.
+ */
+
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { theme } from '../../theme/theme';

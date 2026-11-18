@@ -1,3 +1,10 @@
+/**
+ * Repositório de Usuários e Autenticação (UserRepository)
+ *
+ * Gerencia o cadastro, consulta e validação de credenciais de estudantes no
+ * banco SQLite, com hash de senhas via SHA-256 e suporte a migração de contas.
+ */
+
 import { getDatabase } from '../database';
 import { User } from '../../types';
 import { UserRow, mapUserFromRow } from '../types';

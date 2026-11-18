@@ -1,3 +1,10 @@
+/**
+ * Componente SavedAccountsList (Lista de Contas Salvas)
+ *
+ * Exibe as contas de estudantes cadastradas localmente no banco SQLite,
+ * permitindo selecionar rapidamente o e-mail no formulário de login.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { User } from '../../types';

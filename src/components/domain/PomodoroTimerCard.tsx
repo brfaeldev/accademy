@@ -1,3 +1,10 @@
+/**
+ * Componente PomodoroTimerCard (Card do Cronômetro Pomodoro)
+ *
+ * Mostrador digital e painel de controle dos ciclos de estudo (Foco 25m,
+ * Pausa Curta 5m e Pausa Longa 15m) com vínculo à matéria escolhida.
+ */
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Subject } from '../../types';

@@ -1,3 +1,10 @@
+/**
+ * Componente SubjectGradeCard (Boletim por Disciplina)
+ *
+ * Apresenta o desempenho do estudante na matéria, incluindo média ponderada,
+ * barra de progresso visual, meta estipulada e a listagem de avaliações lançadas.
+ */
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { GradeItem, Subject } from '../../types';

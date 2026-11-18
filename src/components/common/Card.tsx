@@ -1,3 +1,10 @@
+/**
+ * Componente Card (Contêiner Padrão)
+ *
+ * Caixa modular para agrupar conteúdos com cantos arredondados, bordas sutis
+ * e sombra suave. Suporta barra lateral colorida opcional de destaque (highlightColor).
+ */
+
 import React, { ReactNode } from 'react';
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { theme } from '../../theme/theme';

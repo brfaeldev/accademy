@@ -1,3 +1,10 @@
+/**
+ * Service Worker do Progressive Web App (sw.js)
+ *
+ * Gerencia o cache offline e estratégias de requisições de rede para
+ * permitir o funcionamento do aplicativo no navegador mesmo sem internet.
+ */
+
 const CACHE_NAME = 'accademy-pwa-v1';
 
 const STATIC_ASSETS = [

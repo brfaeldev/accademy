@@ -1,3 +1,10 @@
+/**
+ * Componente FloatingActionButton (Botão de Ação Flutuante - FAB)
+ *
+ * Botão fixado sobreposto no canto inferior da tela para acionamento
+ * rápido da funcionalidade prioritária (ex: Iniciar Cronômetro Pomodoro).
+ */
+
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { theme } from '../../theme/theme';

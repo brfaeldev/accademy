@@ -1,3 +1,10 @@
+/**
+ * Repositório de Sessões de Estudo (StudySessionRepository)
+ *
+ * Persiste e recupera os registros de foco e Pomodoro no banco SQLite,
+ * vinculando o tempo líquido dedicado às matérias e ao estudante logado.
+ */
+
 import { getDatabase } from '../database';
 import { StudySession } from '../../types';
 import { StudySessionRow, mapStudySessionFromRow } from '../types';

@@ -1,3 +1,10 @@
+/**
+ * Utilitários de Data e Calendário (dateUtils.ts)
+ *
+ * Funções para manipulação, formatação brasileira (DD/MM/AAAA) e ISO,
+ * cálculo de prazos, máscara de digitação e identificação da próxima aula.
+ */
+
 import { Subject, Task } from '../types';
 
 /**
@@ -47,7 +54,7 @@ export function normalizeDateInput(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  // Formato ISO: YYYY-MM-DD
+  // Formato ISO: AAAA-MM-DD
   const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
   if (isoMatch) {
     const year = Number(isoMatch[1]);
@@ -57,7 +64,7 @@ export function normalizeDateInput(input: string): string | null {
     return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
   }
 
-  // Formato Brasileiro: DD/MM/YYYY
+  // Formato Brasileiro: DD/MM/AAAA
   const brMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
   if (brMatch) {
     const day = Number(brMatch[1]);

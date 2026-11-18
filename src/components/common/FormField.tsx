@@ -1,3 +1,10 @@
+/**
+ * Componente FormField (Campo de Formulário Padronizado)
+ *
+ * Encapsula rótulo (label), indicação de campo obrigatório (*), ícone de prefixo,
+ * controle de alternância de visualização de senha e mensagens de erro de validação.
+ */
+
 import React, { useState } from 'react';
 import {
   View,

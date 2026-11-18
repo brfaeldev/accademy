@@ -1,3 +1,10 @@
+/**
+ * Componente LoginForm (Formulário de Login)
+ *
+ * Gerencia os campos de e-mail e senha para autenticação de estudantes,
+ * permitindo o preenchimento rápido a partir de contas salvas no SQLite.
+ */
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { User } from '../../types';

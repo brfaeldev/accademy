@@ -1,3 +1,10 @@
+/**
+ * Ponto de Entrada da Aplicação (index.ts)
+ *
+ * Registra o componente raiz no ecossistema Expo/React Native e inicializa
+ * o Service Worker para suporte a Progressive Web App (PWA) no navegador.
+ */
+
 import { registerRootComponent } from 'expo';
 import { Platform } from 'react-native';
 
@@ -17,7 +24,6 @@ if (Platform.OS === 'web' && typeof window !== 'undefined' && 'serviceWorker' in
   });
 }
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
+// O registerRootComponent invoca AppRegistry.registerComponent('main', () => App);
+// Também garante a configuração apropriada do ambiente, seja no Expo Go ou em build nativo
 registerRootComponent(App);

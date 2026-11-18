@@ -1,3 +1,10 @@
+/**
+ * Configuração do Bundler Metro (metro.config.js)
+ *
+ * Configura suporte a assets WebAssembly (.wasm) e cabeçalhos de segurança COOP/COEP
+ * para viabilizar a execução do SQLite via SharedArrayBuffer no navegador Web.
+ */
+
 const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);

@@ -1,3 +1,10 @@
+/**
+ * Componente TaskCard (Card de Tarefa / Avaliação)
+ *
+ * Apresenta prazos de provas e trabalhos, badges contextuais de urgência
+ * (atrasado, hoje, dias restantes), alternância rápida de status e ações CRUD.
+ */
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Subject, Task } from '../../types';

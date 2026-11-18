@@ -1,3 +1,11 @@
+/**
+ * Hook de Cronômetro Pomodoro (usePomodoroTimer)
+ *
+ * Controla os ciclos de estudo (25m foco / 5m pausa curta / 15m pausa longa),
+ * previne deriva de tempo usando timestamps reais e sincroniza com o relógio
+ * do sistema quando o aplicativo retorna do segundo plano via AppState.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AppState as RNAppState } from 'react-native';
 import { Subject, StudySession } from '../types';

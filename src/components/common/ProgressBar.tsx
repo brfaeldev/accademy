@@ -1,3 +1,10 @@
+/**
+ * Componente ProgressBar (Barra de Progresso)
+ *
+ * Exibe visualmente o percentual de avanço de metas, médias ponderadas
+ * ou tarefas concluídas, com limites clampados entre 0 e 100% e rótulo opcional.
+ */
+
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { theme } from '../../theme/theme';

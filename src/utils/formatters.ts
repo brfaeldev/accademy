@@ -1,4 +1,11 @@
 /**
+ * Utilitários de Formatação e Geração de IDs (formatters.ts)
+ *
+ * Fornece normalização de dados numéricos decimais (vírgula e ponto)
+ * e gerador de chaves primárias seguras contra colisões simultâneas.
+ */
+
+/**
  * Normaliza entradas numéricas aceitando tanto vírgula quanto ponto decimal (padrão pt-BR e internacional).
  */
 export function parseDecimalInput(value: string, fallback: number = 0): number {

@@ -1,3 +1,11 @@
+/**
+ * Contexto Global (AppContext)
+ *
+ * Gerencia o estado central da aplicação: autenticação de usuários,
+ * sincronização reativa com o banco SQLite (CRUD de matérias, tarefas,
+ * notas e sessões de estudo), orquestração do Pomodoro e cálculos de médias.
+ */
+
 import React, {
   createContext,
   useContext,

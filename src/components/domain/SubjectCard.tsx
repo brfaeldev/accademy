@@ -1,3 +1,10 @@
+/**
+ * Componente SubjectCard (Card de Disciplina)
+ *
+ * Apresenta as informações detalhadas da matéria (código, docente, local,
+ * horários e média atual ponderada), além de ações de edição e exclusão.
+ */
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Subject } from '../../types';

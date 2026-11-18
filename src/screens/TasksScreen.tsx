@@ -1,3 +1,10 @@
+/**
+ * Tela de Tarefas e Prazos (TasksScreen)
+ *
+ * Central de agendamento acadêmico com filtros por status de entrega,
+ * ordenação cronológica de prazos e operações CRUD de provas e trabalhos.
+ */
+
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { useApp } from '../context/AppContext';
